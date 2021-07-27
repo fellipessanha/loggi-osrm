@@ -1,16 +1,21 @@
+#pragma once
+
+#include "loggi-include.hpp"
 #include "my_utils.hpp"
 
 namespace loggibud
 {
+//
 // intrarroute
-void opt02(std::vector<std::vector<int>> &candidate)
+std::pair<int, std::pair<int, int>>
+opt02(const std::pair<int, std::pair<int, int>> &moveData, ESolutionVRP &candidate)
 {
-  int n = candidate.size();
-  std::vector<int> &route = candidate[1 + (rand() % (n - 1))];
+  int n = candidate.first.size();
+  std::vector<int> &route = candidate.first[1 + (rand() % (n - 1))];
 
-  auto optLimits = twoRandNoDepot(route.size());
+  auto optLimits = moveData.second;
 
-  int n = (optLimits.second - optLimits.first) / 2;
+  n = (optLimits.second - optLimits.first) / 2;
 
   for (auto i = 0; i <= n; i++)
   {
@@ -18,6 +23,8 @@ void opt02(std::vector<std::vector<int>> &candidate)
     route[optLimits.first + i] = route[optLimits.second - i];
     route[optLimits.second - i] = route[optLimits.first + i];
   }
+
+  return moveData;
 }
 
 // interroute  

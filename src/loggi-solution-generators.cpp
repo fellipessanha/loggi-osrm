@@ -1,3 +1,8 @@
+#pragma once
+
+#include<numeric>
+#include <algorithm>
+
 namespace loggibud
 {
 
@@ -30,7 +35,8 @@ namespace loggibud
     const std::vector<Delivery> &allDeliveries, 
     const int &vehicle_cap, 
     const int &initial_routes){
-      std::cout << "\nPUCA GENERATOR\n";
+
+    std::cout << "\nPUCA GENERATOR\n";
     // return variable
     std::vector<std::vector<int>> routes;
     //
@@ -40,7 +46,8 @@ namespace loggibud
 
     for (int i = 0; i < initial_routes; i++)
     {
-      // std::cout << "routes vector has " << routes.size() << " elements\n";
+      std::cout << "routes vector has " << routes.size() << " elements\n";
+
       // A route has a thisRoute vector and thisCapacity int
       std::vector<int> thisRoute;
       int thisCapacity = 0;
@@ -48,7 +55,7 @@ namespace loggibud
       thisRoute.push_back(0);
       //
       int rng_index = (rand() % (possible.size() - 1));
-      int rng_key = possible[rng_key];
+      int rng_key = possible[rng_index];
       //
       // Inserts random first stop into route
       thisRoute.push_back(rng_key);
@@ -58,11 +65,14 @@ namespace loggibud
       possible.erase(possible.begin() + rng_index);
 
       // Parallel insertion algorithm also taken from Puca Thesis
+      std::cout << "making OSRM request\n";
       std::vector<double> dists =
           evaluateDistsfromPoint(allDeliveries, possible, thisRoute.back());
+      std::cout << "OSRM request made\n";
+
       while (thisCapacity < vehicle_cap && possible.size())
       {
-        // std::cout << "this route has " << thisRoute.size() << " stops\n";
+        std::cout << "this route has " << thisRoute.size() << " stops\n";
 
         // Gets minimum distance from last stop (can be improved!)
         std::min_element(dists.begin(), dists.end());

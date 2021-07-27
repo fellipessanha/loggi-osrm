@@ -12,7 +12,7 @@ namespace loggibud{
     // ss << "localhost:5000/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
     ss << "http://router.project-osrm.org/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
     // TODO: test to see how OSRM deals with it!
-    size_t usedOptions = viableOptions.size()/20;
+    size_t usedOptions = viableOptions.size();
     for (size_t i = 0; i < usedOptions; i++){
       ss << ';' << allDeliveries[viableOptions[i]].pt;
     }
