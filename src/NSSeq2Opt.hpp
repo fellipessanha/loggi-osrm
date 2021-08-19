@@ -35,11 +35,13 @@
 
 #include "loggi-context-loader.hpp"
 
+#include "heuristic_moves.hpp"
+
 //using namespace optframe;
 
 // forward declaration
-const loggibud::MoveData&
-opt02(const loggibud::MoveData& moveData, ESolutionVRP& candidate);
+//const loggibud::MoveData&
+//opt02(const loggibud::MoveData& moveData, ESolutionVRP& candidate);
 
 namespace loggibud {
 
