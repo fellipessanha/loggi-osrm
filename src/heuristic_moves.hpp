@@ -7,13 +7,13 @@ namespace loggibud
 {
 //
 // intrarroute
-std::pair<int, std::pair<int, int>>
-opt02(const std::pair<int, std::pair<int, int>> &moveData, ESolutionVRP &candidate)
+const MoveData&
+opt02(const MoveData& moveData, ESolutionVRP &candidate)
 {
   int n = candidate.first.size();
-  std::vector<int> &route = candidate.first[1 + (rand() % (n - 1))];
+  std::vector<int> &route = candidate.first[moveData.route1];
 
-  auto optLimits = moveData.second;
+  auto optLimits = moveData.limits1;
 
   n = (optLimits.second - optLimits.first) / 2;
 

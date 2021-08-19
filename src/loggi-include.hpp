@@ -16,7 +16,9 @@
 //
 using ESolutionVRP = std::pair<
   std::vector<std::vector<int>>,
-  optframe::Evaluation<double>>;
+  optframe::Evaluation<double> >;
+//
+using uptrMoveVPR = std::unique_ptr<optframe::Move<ESolutionVRP>>
 //
 #include <fstream>
 #include <set>
@@ -35,5 +37,6 @@ using json = nlohmann::json;
 #include "loggi-evaluator.cpp"
 #include "loggi-solution-generators.cpp"
 #include "heuristic_moves.hpp"
+#include "NSSeq2Opt.hpp"
 //
 //#include "FCore_functions.hpp"

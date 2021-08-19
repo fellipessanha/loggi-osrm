@@ -4,6 +4,7 @@
 
 #include "loggi-include.hpp"
 #include <OptFrame/Move.hpp>
+#include <memory>
 //
 
 namespace loggibud {
@@ -27,7 +28,7 @@ class FCoreLoggi
   }
   //
   std::function<
-    optframe::Evaluation<double>(const std::vector<std::vector<int>>& s)>
+    optframe::Evaluation<double>(const std::vector<std::vector<int>>&)>
     fEvaluate1 = [this](const std::vector<std::vector<int>>& s) -> optframe::Evaluation<double> {
     return evaluateInstance(s, this->allDeliveries);
   };
@@ -58,7 +59,7 @@ class FCoreLoggi
   // Heuristic Moves //
   /////////////////////
   //
-  optframe::uptr<optframe::Move<ESolutionVRP>>
+  uptrMoveVPR >
   random2Opt(const ESolutionVRP& candidate)
   {
     const std::vector<std::vector<int>>& rt = candidate.first;
@@ -71,9 +72,14 @@ class FCoreLoggi
     mvData.first = route_n;
     mvData.second = optLimits;
 
-    return optframe::uptr<optframe::Move<ESolutionVRP>>(
-      new VRPMoveTemplate{mvData, opt02});
+    return uptrMoveVPR >{
+      new VRPMoveTemplate(std::make_pair(route_n, optLimits), opt02)};
   }
+  //
+  std::function<
+    uptrMoveVPR >(const ESolutionVRP&) >
+    fRandom2Opt = this->random2Opt;
+
 //
 public:
   optframe::FNS<ESolutionVRP> move_2Opt;
@@ -81,14 +87,14 @@ public:
   optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;           // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
   optframe::FConstructive<std::vector<std::vector<int>>> bad_optFC_generator;       // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
 
-  FCoreLoggi(Instance i)
+  FCoreLoggi(Instance& i)
     : instance_ { i }
     , capacity { i.getCap() }
     , allDeliveries { i.getAllDeliveries() }
     , optFC_evaluator { evaluation }
     , optFC_generator { generation }
     , bad_optFC_generator { badGeneration }
-    , move_2Opt { random2Opt }
+    , move_2Opt { fRandom2Opt }
   {
     initial_routes = 0;
     for (loggibud::Delivery i : allDeliveries)
