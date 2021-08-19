@@ -27,9 +27,8 @@ class FCoreLoggi
     return optframe::Evaluation<double>(evaluateInstance(s, allDeliveries));
   }
   //
-  std::function<
-    optframe::Evaluation<double>(const std::vector<std::vector<int>>&)>
-    fEvaluate1 = [this](const std::vector<std::vector<int>>& s) -> optframe::Evaluation<double> {
+  std::function<optframe::Evaluation<double>(const std::vector<std::vector<int>>&)> fEvaluate1 =
+    [this](const std::vector<std::vector<int>>& s) -> optframe::Evaluation<double> {
     return evaluateInstance(s, this->allDeliveries);
   };
   //
@@ -49,8 +48,7 @@ class FCoreLoggi
     return pucaGenerator(this->allDeliveries, this->instance_.getCap(), initial_routes);
   };
   //
-  std::function<
-    std::vector<std::vector<int>>()>
+  std::function<std::vector<std::vector<int>>()>
     badGeneration = [this]() -> std::vector<std::vector<int>> {
     return firstBadSolution(this->allDeliveries, this->instance_.getCap());
   };
@@ -59,6 +57,7 @@ class FCoreLoggi
   // Heuristic Moves //
   /////////////////////
   //
+  /*
   uptrMoveVPR
   random2Opt(const ESolutionVRP& candidate)
   {
@@ -72,40 +71,40 @@ class FCoreLoggi
     mvData.first = route_n;
     mvData.second = optLimits;
 
-    return uptrMoveVPR > {
+    return uptrMoveVPR{
       new VRPMoveTemplate(std::make_pair(route_n, optLimits), opt02)
     };
   }
   //
-  std::function<
-    uptrMoveVPR(const ESolutionVRP&)>
-    fRandom2Opt = [this](const ESolutionVRP& candidate) -> uptrMoveVPR {
+  std::function<uptrMoveVPR(const ESolutionVRP&)> fRandom2Opt =
+    [this](const ESolutionVRP& candidate) -> uptrMoveVPR {
     return this->random2Opt(candidate);
-  }
-
+  };
+*/
   //
   //optframe::FNS<ESolutionVRP>
   //             move_2Opt;
 
-  optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>
-    optFC_evaluator;                                                          // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
-  optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;     // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
-  optframe::FConstructive<std::vector<std::vector<int>>> bad_optFC_generator; // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> optFC_evaluator; // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;           // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  optframe::FConstructive<std::vector<std::vector<int>>> bad_optFC_generator;       // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
 
   FCoreLoggi(Instance& i)
     : instance_{ i }
     , capacity{ i.getCap() }
     , allDeliveries{ i.getAllDeliveries() }
-    , optFC_evaluator{ evaluation }
-    , optFC_generator{ generation }
+    , optFC_evaluator{ fEvaluate1 }
+    , optFC_generator{ fGeneration1 }
     , bad_optFC_generator{ badGeneration }
-    , move_2Opt{ fRandom2Opt }
+  //, move_2Opt{ fRandom2Opt }
   {
     initial_routes = 0;
     for (loggibud::Delivery i : allDeliveries)
       initial_routes += i.size;
     initial_routes *= 1.3 / (capacity);
     std::cout << "\nfc constructed\n";
-  };
+  }
+
 }; // class
+//
 } // namespace loggibud

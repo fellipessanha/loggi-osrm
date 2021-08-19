@@ -1,6 +1,6 @@
 #include "loggi-include.hpp"
 
-//#include "FCore_functions.hpp"
+#include "FCore_functions.hpp"
 
 int
 main()
