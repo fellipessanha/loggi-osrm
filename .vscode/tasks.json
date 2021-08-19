@@ -1,0 +1,33 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++ arquivo de build ativo",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-std=c++17",
+				"-I/home/imcoelho/git-reps/optframe/src/",
+				"-g",
+				"${file}",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}",
+				"-fconcepts",
+				"-fcoroutines",
+				"-lcurl",
+				"-lcurlpp"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compilador: /usr/bin/g++"
+		}
+	]
+}
