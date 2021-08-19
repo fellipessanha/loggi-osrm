@@ -9,7 +9,7 @@
 
 namespace loggibud {
 
-using VRPMoveTemplate = optframe::FMove< std::pair<int, std::pair<int, int>>, ESolutionVRP>;
+using VRPMoveTemplate = optframe::FMove<std::pair<int, std::pair<int, int>>, ESolutionVRP>;
 
 class FCoreLoggi
 {
@@ -59,7 +59,7 @@ class FCoreLoggi
   // Heuristic Moves //
   /////////////////////
   //
-  uptrMoveVPR >
+  uptrMoveVPR
   random2Opt(const ESolutionVRP& candidate)
   {
     const std::vector<std::vector<int>>& rt = candidate.first;
@@ -72,29 +72,34 @@ class FCoreLoggi
     mvData.first = route_n;
     mvData.second = optLimits;
 
-    return uptrMoveVPR >{
-      new VRPMoveTemplate(std::make_pair(route_n, optLimits), opt02)};
+    return uptrMoveVPR > {
+      new VRPMoveTemplate(std::make_pair(route_n, optLimits), opt02)
+    };
   }
   //
   std::function<
-    uptrMoveVPR >(const ESolutionVRP&) >
-    fRandom2Opt = this->random2Opt;
+    uptrMoveVPR(const ESolutionVRP&)>
+    fRandom2Opt = [this](const ESolutionVRP& candidate) -> uptrMoveVPR {
+    return this->random2Opt(candidate);
+  }
 
-//
-public:
-  optframe::FNS<ESolutionVRP> move_2Opt;
-  optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> optFC_evaluator; // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
-  optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;           // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
-  optframe::FConstructive<std::vector<std::vector<int>>> bad_optFC_generator;       // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  //
+  //optframe::FNS<ESolutionVRP>
+  //             move_2Opt;
+
+  optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>
+    optFC_evaluator;                                                          // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;     // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
+  optframe::FConstructive<std::vector<std::vector<int>>> bad_optFC_generator; // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
 
   FCoreLoggi(Instance& i)
-    : instance_ { i }
-    , capacity { i.getCap() }
-    , allDeliveries { i.getAllDeliveries() }
-    , optFC_evaluator { evaluation }
-    , optFC_generator { generation }
-    , bad_optFC_generator { badGeneration }
-    , move_2Opt { fRandom2Opt }
+    : instance_{ i }
+    , capacity{ i.getCap() }
+    , allDeliveries{ i.getAllDeliveries() }
+    , optFC_evaluator{ evaluation }
+    , optFC_generator{ generation }
+    , bad_optFC_generator{ badGeneration }
+    , move_2Opt{ fRandom2Opt }
   {
     initial_routes = 0;
     for (loggibud::Delivery i : allDeliveries)

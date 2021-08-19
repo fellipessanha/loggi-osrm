@@ -1,3 +1,5 @@
+#pragma once
+
 // OptFrame 4.2 - Optimization Framework
 // Copyright (C) 2009-2021 - MIT LICENSE
 // https://github.com/optframe/optframe
@@ -23,10 +25,21 @@
 // Framework includes
 #include <OptFrame/Evaluation.hpp>
 #include <OptFrame/Move.hpp>
+#include <OptFrame/NSIterator.hpp>
 #include <OptFrame/NSSeq.hpp>
 #include <OptFrame/RandGen.hpp>
 //
-#include "src/loggi-include.hpp"
+//#include "loggi-include.hpp"
+
+#include "MoveData.hpp"
+
+#include "loggi-context-loader.hpp"
+
+//using namespace optframe;
+
+// forward declaration
+const loggibud::MoveData&
+opt02(const loggibud::MoveData& moveData, ESolutionVRP& candidate);
 
 namespace loggibud {
 
@@ -39,7 +52,7 @@ protected:
   const int capacity;
 
 public:
-  Move2Opt(const Instance& inst, const MoveData& mvDt)
+  Move2Opt(const Instance& inst, MoveData mvDt)
     : mvData{ mvDt }
     , instance{ inst }
     , allDeliveries{ inst.getAllDeliveries() }
@@ -184,10 +197,11 @@ public:
     return make_optional(optframe::Evaluation<>(f, 0));
   } */
 
-  virtual bool operator==(const optframe::Move<ESolutionVRP>& _m) const // util busca tabu
+  virtual bool operator==(const optframe::Move<ESolutionVRP>& _m) const override // util busca tabu
   {
-    const Move2Opt& m = (const Move2Opt&)_m;
-    return (m.x1 == x1) && (m.y1 == y1) && (m.x2 == x2) && (m.y2 == y2);
+    //const Move2Opt& m = (const Move2Opt&)_m;
+    //return (m.x1 == x1) && (m.y1 == y1) && (m.x2 == x2) && (m.y2 == y2);
+    return false;
   }
 
   void print() const {}
@@ -198,11 +212,11 @@ public:
   // }
 }; // class Move2Opt
 
-class NSIterator2Opt : public NSIterator<ESolutionVRP>
+class NSIterator2Opt : public optframe::NSIterator<ESolutionVRP>
 {
 private:
-  loggibud::Instance instance;
-  std::vector<std::vector<int>>& candidate;
+  const loggibud::Instance& instance;
+  const std::vector<std::vector<int>>& candidate;
   const int n_routes;
   //
   int curr_max;
@@ -213,7 +227,7 @@ private:
   int opt02min = 0;
 
 public:
-  NSIterator2Opt(std::vector<std::vector<int>>& se, loggibud::Instance inst)
+  NSIterator2Opt(const std::vector<std::vector<int>>& se, const loggibud::Instance& inst)
     : instance{ inst }
     , candidate{ se }
     , n_routes{ se.size() }
@@ -223,7 +237,7 @@ public:
   {
   }
 
-  virtual void first()
+  virtual void first() override
   {
     // Starts from the last element so
     curr_max = candidate[mvDt.route1].size() - 1;
@@ -232,7 +246,7 @@ public:
     mvDt.limits1.second = curr_max;
   }
 
-  virtual void next()
+  virtual void next() override
   {
     mvDt.limits1.second--;
     if (mvDt.limits1.second <= mvDt.limits1.first + opt02min) {
@@ -248,26 +262,26 @@ public:
     }
   }
 
-  virtual bool isDone()
+  virtual bool isDone() override
   {
     return (mvDt.route1 >= n_routes);
   }
 
-  virtual uptrMoveVPR current(MoveData mvDt)
+  virtual uptrMoveVPR current() override
   {
     return uptrMoveVPR(new Move2Opt(instance, mvDt));
   }
 };
 
-template<class MOVE = Move2Opt>
-class NSSeq2Opt : public NSSeq<ESolutionVRP>
+class NSSeq2Opt : public optframe::NSSeq<ESolutionVRP>
 {
 private:
-  Instance instance;
-  RandGen& rg;
+  const Instance& instance;
+  //sref<Instance> instance; // shared_ptr ou unique_ptr
+  optframe::RandGen& rg;
 
 public:
-  NSSeq2Opt(const Instance& inst, RandGen& _rg)
+  NSSeq2Opt(const Instance& inst, optframe::RandGen& _rg)
     : instance{ inst }
     , rg{ _rg }
   {
@@ -280,7 +294,7 @@ public:
   // inutilizado no VND!
   virtual uptrMoveVPR randomMove(const ESolutionVRP& se) override
   {
-    const std::vector<std::vector<int>>& rep = se.first.getR();
+    const std::vector<std::vector<int>>& rep = se.first;
     const int n = rep.size();
 
     // random route to apply 2opt
@@ -288,14 +302,19 @@ public:
 
     auto limits = twoRandNoDepot(n);
 
-    return uptrMoveVPR(new MOVE(instance, MoveData(route, limits)));
+    return uptrMoveVPR(new Move2Opt(instance, MoveData(route, limits)));
   }
 
-  virtual std::unique_ptr<NSIterator<ESolutionVRP>> getIterator(const ESolutionVRP& se) override
+  using uptr_iter = std::unique_ptr<optframe::NSIterator<ESolutionVRP>>;
+
+  virtual uptr_iter getIterator(const ESolutionVRP& se) override
   {
-    const std::vector<std::vector<int>>& rep = se.first.getR();
+    const std::vector<std::vector<int>>& rep = se.first;
     // return an iterator to the neighbors of 'rep'
-    return std::unique_ptr<NSIterator<ESolutionVRP>>(new NSIterator2Opt(rep.getNumRows() - 2, rep.getNumCols() - 2));
+    return uptr_iter(
+      new NSIterator2Opt(
+        se.first,
+        instance));
   }
 
   virtual void print() const
