@@ -9,11 +9,10 @@
 				"-std=c++17",
 				"-I/home/imcoelho/git-reps/optframe/src/",
 				"-g",
-				"${file}",
+				"${workspaceRoot}/src/main-loggi.cpp",
 				"-o",
-				"${fileDirname}/${fileBasenameNoExtension}",
+				"${workspaceRoot}/main-loggi",
 				"-fconcepts",
-				"-fcoroutines",
 				"-lcurl",
 				"-lcurlpp"
 			],
