@@ -94,7 +94,7 @@ class FCoreLoggi
     , capacity{ i.getCap() }
     , allDeliveries{ i.getAllDeliveries() }
     , optFC_evaluator{ fEvaluate1 }
-    , optFC_generator{ fGeneration1 }
+    // , optFC_generator{ fGeneration1 }
     , bad_optFC_generator{ badGeneration }
   //, move_2Opt{ fRandom2Opt }
   {

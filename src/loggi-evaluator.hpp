@@ -9,8 +9,8 @@ namespace loggibud{
     // preparing the url that's gon be used
     std::stringstream ss;
     // ss.precision(4);
-    // ss << "localhost:5000/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
-    ss << "http://router.project-osrm.org/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
+    ss << "localhost:5000/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
+    // ss << "http://router.project-osrm.org/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
     // TODO: test to see how OSRM deals with it!
     size_t usedOptions = viableOptions.size();
     for (size_t i = 0; i < usedOptions; i++){
@@ -18,7 +18,6 @@ namespace loggibud{
     }
     // Same options as in loggibud documentation
     ss << "?sources=0";
-    // std::cout << ss.str();
     //
     // curlpp easymode fun
     curlpp::Easy myRequest;
@@ -36,7 +35,7 @@ namespace loggibud{
     }
 
     // setting up the json file
-    std::cout << "\n" << ss.str() << "\n";
+    // std::cout << "\n" << ss.str() << "\n";
     json osrmOut;
     ss >> osrmOut;
 
@@ -57,8 +56,8 @@ namespace loggibud{
     // preparing the url that's gon be used
     std::stringstream ss;
     ss.precision(4);
-    // ss << "localhost:5000/route/v1/driving/" << allDeliveries[route[0]].pt;
-    ss << "http://router.project-osrm.org/route/v1/driving/" << allDeliveries[route[0]].pt;
+    ss << "localhost:5000/route/v1/driving/" << allDeliveries[route[0]].pt;
+    // ss << "http://router.project-osrm.org/route/v1/driving/" << allDeliveries[route[0]].pt;
     // TODO: test to see how OSRM deals with it!
     for (int i = 1; i < route.size(); i++){
       ss << ';' << allDeliveries[route[i]].pt;
@@ -81,14 +80,7 @@ namespace loggibud{
     catch(curlpp::RuntimeError & e){
       std::cout << e.what() << std::endl;
     }
-    //
-    /* DEBUGGING JSON
-    std::ofstream writer("algo.json", std::ofstream::out);
-    writer << ss.str();
-    writer.close();
-    */
-
-
+    
     // setting up the json file
     json osrmOut;
     ss >> osrmOut;

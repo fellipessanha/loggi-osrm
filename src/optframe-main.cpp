@@ -16,18 +16,26 @@ main()
   // auto sol = *fC_loggi.bad_optFC_generator.generateSolution(0);
   auto sol = *fC_loggi.optFC_generator.generateSolution(0);
 
-  for (size_t i = 0; i < sol.size(); i++) {
-    std::cout << "\n\nvehicle " << i << ":\n";
-    for (auto j : sol[i]) {
-      std::cout << j << "\t";
-    }
-  }
   std::cout << '\n';
 
   // instancia NSSeq
   RandGen rg;
 
   NSSeq2Opt nsseq_2opt(instance, rg);
+
+
+  // BasicSimulatedAnnealing(
+    // sref<GeneralEvaluator<XES, XEv>> _evaluator
+    // , sref<InitialSearch<XES, XEv>> _constructive
+    // , sref<NS<XES, XEv, XSH>> _neighbors
+    // , double _alpha
+    // , int _SAmax
+    // , double _Ti
+    // , sref<RandGen> _rg = new RandGen)
+
+  optframe::BasicSimulatedAnnealing()
+
+  ev = 
 
   return 0;
 }
