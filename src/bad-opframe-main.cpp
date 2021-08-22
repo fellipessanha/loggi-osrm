@@ -1,3 +1,4 @@
+
 #include "loggi-include.hpp"
 
 // #include "FCore_functions.hpp"
@@ -12,10 +13,12 @@ class MyEvaluator final
 public:
   const loggibud::Instance& instance;
   const std::vector<loggibud::Delivery> deliveriesList;
-  const optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>& ev;
+  //
+  // can't be const, should ask Igor why
+  optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>& ev;
 
   //, std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)> _feval)
-  MyEvaluator(loggibud::Instance _instance, const optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>& _ev)
+  MyEvaluator(loggibud::Instance _instance, optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>& _ev)
     : instance{ _instance }
     , deliveriesList{ instance.getAllDeliveries() }
     , ev { _ev}
@@ -37,14 +40,14 @@ main()
   // loading instance data
   loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json");
   auto& deliveriesList = instance.getAllDeliveries();
-  
+
   /////////////////////////// 
   // getting relevant info //
   /////////////////////////// 
   //
   const int cap = instance.getCap();
   const int min_cars = deliveriesList.size() / cap;
-  
+
   //////////////////////////////
   // setting up the evaluator //
   //////////////////////////////
@@ -57,7 +60,7 @@ main()
   //
   optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> opt_evaluator{evaluation_function};
   //
-  MyEvaluator myEval(instance, ev);
+  MyEvaluator myEval(instance, opt_evaluator);
 
 
   ///////////////////////////////////////////////
@@ -74,7 +77,7 @@ main()
     badGeneration
   };
   //
-  optframe::BasicInitialSearch<ESolutionVRP> badInit(badGen, ev);
+  optframe::BasicInitialSearch<ESolutionVRP> badInit(badGen, opt_evaluator);
 
   sref<optframe::RandGen> rg{ new optframe::RandGen };
   //
@@ -101,4 +104,4 @@ main()
   auto status = sa.search(30);
 
   return 0;
-}
+} 
