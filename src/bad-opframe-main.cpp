@@ -1,15 +1,14 @@
 
 #include "loggi-include.hpp"
 
+#include "distances-storage.hpp"
+
 // #include "FCore_functions.hpp"
 
 class MyEvaluator final
   : public optframe::Evaluator<ESolutionVRP::first_type, ESolutionVRP::second_type, ESolutionVRP>
 {
-  //  using S = ESolutionVRP::first_type;
-  //  using XEv = ESolutionVRP::second_type;
-  //  using XSH = ESolutionVRP; // only single objective
-
+  
 public:
   const loggibud::Instance& instance;
   const std::vector<loggibud::Delivery> deliveriesList;
@@ -38,7 +37,7 @@ int
 main()
 {
   // loading instance data
-  loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json");
+  loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json", "clusterings/kmeans-clusteringLabels.json");
   auto& deliveriesList = instance.getAllDeliveries();
 
   /////////////////////////// 
@@ -86,7 +85,12 @@ main()
   vsref<optframe::NS<ESolutionVRP>> neighbors;
   neighbors.push_back(nsSeq2Opt);
 
+  auto x = loggibud::makeMatrixDistances(instance);
 
+  for (auto i= x[10].begin(); i != x[10].end(); ++i)
+    std::cout << i->first << '\t';
+
+  exit(1);
   /////////////////////////////////////////
   // Setting up the Simmulated Annealing //
   /////////////////////////////////////////

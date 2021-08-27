@@ -1,4 +1,57 @@
+#pragma once
+
+#include <sstream>
+//
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
+#include <curlpp/cURLpp.hpp>
+
 namespace loggibud{
+
+std::vector<std::vector<double>> evaluateDistsMatrix
+  (const std::vector<int> &viableOptions, const std::vector<Delivery>& deliveries){
+    
+    // Not sure if that's how i works, but cleaning up our http stuff here
+    curlpp::Cleanup myCleanup;
+    //
+    // preparing the url that's gon be used
+    std::stringstream ss;
+    // ss.precision(4);
+  
+    ss << "localhost:5000/table/v1/driving/"
+    // ss << "http://router.project-osrm.org/table/v1/driving/"
+       << deliveries[viableOptions[0]].pt;
+    size_t usedOptions = viableOptions.size();
+    for (size_t i = 1; i < usedOptions; i++){
+      ss << ';' << deliveries[viableOptions[i]].pt;
+    }
+  
+    //
+    // curlpp easymode fun
+    curlpp::Easy myRequest;
+    myRequest.setOpt<curlpp::options::Url>(ss.str());
+    // after setting URL we can clear stringstream
+    ss.str("");
+    // making the request write straight to the ss stringstream avoids cluttering the cout
+    myRequest.setOpt(curlpp::options::WriteStream(&ss));
+    //
+    try{
+      myRequest.perform();
+    }
+    catch(curlpp::RuntimeError & e){
+      std::cout << e.what() << std::endl;
+    }
+
+    // setting up the json file
+    json osrmOut;
+    ss >> osrmOut;
+
+    std::vector<std::vector<double>> distances = osrmOut["durations"];
+
+    // this seems to work ok, but bugs if you do something like tensor.push_back(evaluateDistsMatrix(vec));
+    return distances;
+  }
+  
 
   std::vector<double> evaluateDistsfromPoint
   (const std::vector<Delivery> &allDeliveries, const std::vector<int> &viableOptions, int source_index = 0){
@@ -45,7 +98,6 @@ namespace loggibud{
     }   
     return outputs;
   }
-
 
   double evaluateRouteDistance
   (const std::vector<int> &route, const std::vector<Delivery> &allDeliveries){

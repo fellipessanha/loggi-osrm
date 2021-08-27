@@ -3,6 +3,11 @@
 
 #include <utility> // std::pair
 #include <vector>  // std::vector
+#include <iostream> // cout, strings
+#include <fstream> // reading files
+//
+#include "../nlohmann/json.hpp"
+using json = nlohmann::json;
 
 namespace loggibud {
 
@@ -11,6 +16,7 @@ struct Delivery
   std::string id;
   std::string pt;
   int size;
+  int cluster;
   std::pair<double, double> point; // in format  {lng, lat}
 };
 
@@ -27,12 +33,13 @@ class Instance
   std::string origin;                      // in format $lng+';'+$lat
   //
   std::vector<Delivery> deliveries;
+  std::vector<int> clusterList;
   //
   void loadDetails(json jInstance, json jDelivery)
   {
     // Auxiliar text things
     std::stringstream text_coords;
-    text_coords.precision(7); // make it as precise as you want!
+    text_coords.precision(15); // make it as precise as you want!
     //
     std::cout << "instance details...\t";
     name = jInstance["name"];
@@ -61,7 +68,21 @@ class Instance
       deliveries.push_back(d);
       counter++;
     }
-    std::cout << "succesfully loaded " << counter << " delivery points!\n";
+    std::cout << "ok!\nsuccesfully loaded " << counter << " delivery points!\n";
+  }
+
+  void loadClusters(const json& jClusterData){
+    for (size_t i = 0; i < deliveries.size(); i++){
+      Delivery& del = deliveries[i];
+      std::string id = del.id;
+      //
+      int clusterN = jClusterData[id];
+      //
+      del.cluster = clusterN;
+      //
+      clusterList.push_back(clusterN);
+    }
+    assert(deliveries.size() == clusterList.size());
   }
 
 public:
@@ -80,14 +101,21 @@ public:
     return vehicle_capacity;
   }
 
-  Instance(const std::string& instancePath, const std::string& deliveryPath, const std::string& outPath_ = ".")
-    : outPath(outPath_)
+  const std::vector<int>& getClusters() const{
+    return clusterList;
+  }
+
+  Instance(const std::string& instancePath, const std::string& deliveryPath, const std::string& clusterPath = "")
   {
     std::cout << "loading files:\n";
-    json _instance, _delivery;
+    json _instance, _delivery, _clusters;
     //
-    std::cout << "instance...\t";
+    // Using this single ifstream to read all the files. 
+    // Must remember to close it after using each time, or else it breaks
     std::ifstream reader(instancePath, std::ifstream::in);
+    //
+
+    std::cout << "instance...\t";
     reader >> _instance;
     reader.close();
     std::cout << "loaded!\n";
@@ -96,7 +124,22 @@ public:
     reader.open(deliveryPath, std::ifstream::in);
     reader >> _delivery;
     std::cout << "loaded!\nstarting Instance constructor...\n";
+    reader.close();
+    //
+
     loadDetails(_instance, _delivery);
+
+    if(clusterPath == ""){
+      std::cout << "no clusters to read\n";
+    } 
+    else {
+      std:: cout << "loading clusters from \"" << clusterPath << "\"...\t" << std::flush;
+      reader.open(clusterPath, std::ifstream::in);
+      // std::cout << reader.rdbuf() << '\n' << std::endl;
+      reader >> _clusters;
+      loadClusters(_clusters);
+      std::cout << "done!";
+    }
   }
 };
 

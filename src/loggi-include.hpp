@@ -31,12 +31,11 @@ using json = nlohmann::json;
 #include <curlpp/Options.hpp>
 #include <curlpp/cURLpp.hpp>
 //
-#include "loggi-context-loader.hpp"
-#include "my_utils.hpp"
-//
 #include "NSSeq2Opt.hpp"
 #include "heuristic_moves.hpp"
-#include "loggi-evaluator.cpp"
-#include "loggi-solution-generators.cpp"
+#include "loggi-context-loader.hpp"
+#include "loggi-evaluator.hpp"
+#include "loggi-solution-generators.hpp"
+#include "my_utils.hpp"
 //
 //#include "FCore_functions.hpp"

@@ -31,7 +31,7 @@ def KMeans_pred(n_clust, routes):
 
   labels_per_id = {}
   for i in range(len(routes)):
-    labels_per_id[rtIds[i]] = str(y_pred[i])
+    labels_per_id[rtIds[i]] = int(y_pred[i])
 
   return labels_per_id
 
@@ -48,7 +48,7 @@ def completeAgglomerative_pred(n_clust, routes):
   
   labels_per_id = {}
   for i in range(len(routes)):
-    labels_per_id[rtIds[i]] = str(labels[i])
+    labels_per_id[rtIds[i]] = int(labels[i])
 
   return labels_per_id
 
@@ -66,7 +66,7 @@ def wardAgglomerative_pred(n_clust, routes):
   
   labels_per_id = {}
   for i in range(len(routes)):
-    labels_per_id[rtIds[i]] = str(labels[i])
+    labels_per_id[rtIds[i]] = int(labels[i])
 
   return labels_per_id
 
@@ -84,7 +84,7 @@ def dbScan_pred(min_dist, min_neighbors, routes):
 
   labels_per_id = {}
   for i in range(len(routes)):
-    labels_per_id[rtIds[i]] = str(labels[i])
+    labels_per_id[rtIds[i]] = int(labels[i])
 
   return labels_per_id
 
@@ -102,7 +102,7 @@ def main():
 
   # Used to 
   sz = len(routeDict)
-  n_clusters = int(sz/50)
+  n_clusters = int(sz/150)
   min_dist = 0.0004
   min_neighbors = 20
 
