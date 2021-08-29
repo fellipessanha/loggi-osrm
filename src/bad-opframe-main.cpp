@@ -38,12 +38,13 @@ main()
 {
   // loading instance data
   loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json", "clusterings/kmeans-clusteringLabels.json");
-  auto& deliveriesList = instance.getAllDeliveries();
 
   /////////////////////////// 
   // getting relevant info //
   /////////////////////////// 
   //
+  const auto& deliveriesList = instance.getAllDeliveries();
+  const auto clustersMap = loggibud::makeMatrixDistances(instance);
   const int cap = instance.getCap();
   const int min_cars = deliveriesList.size() / cap;
 
@@ -53,7 +54,7 @@ main()
   //
   std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)>
     evaluation_function = [&](std::vector<std::vector<int>> sol) -> optframe::Evaluation<double> {
-    double score = loggibud::evaluateInstance(sol, deliveriesList);
+    double score = loggibud::evaluateInstanceClusters(sol, deliveriesList, clustersMap);
     return optframe::Evaluation<double>{ score };
   };
   //
@@ -69,7 +70,7 @@ main()
   //
   std::function<std::vector<std::vector<int>>()>
     badGeneration = [&]() -> std::vector<std::vector<int>> {
-    return firstBadSolution(deliveriesList, instance.getCap());
+    return loggibud::generatefromClusters(deliveriesList, clustersMap, instance.getCap(), min_cars);
   };
   //
   optframe::FConstructive<std::vector<std::vector<int>>> badGen{
@@ -85,12 +86,6 @@ main()
   vsref<optframe::NS<ESolutionVRP>> neighbors;
   neighbors.push_back(nsSeq2Opt);
 
-  auto x = loggibud::makeMatrixDistances(instance);
-
-  for (auto i= x[10].begin(); i != x[10].end(); ++i)
-    std::cout << i->first << '\t';
-
-  exit(1);
   /////////////////////////////////////////
   // Setting up the Simmulated Annealing //
   /////////////////////////////////////////

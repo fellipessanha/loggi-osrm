@@ -219,7 +219,7 @@ class NSIterator2Opt : public optframe::NSIterator<ESolutionVRP>
 private:
   const loggibud::Instance& instance;
   const std::vector<std::vector<int>>& candidate;
-  const int n_routes;
+  const size_t n_routes;
   //
   int curr_max;
   loggibud::MoveData mvDt;
@@ -323,7 +323,7 @@ public:
   {
   }
 
-  string id() const {}
+  string id() const { return "";}
 };
 
 }

@@ -6,149 +6,189 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/cURLpp.hpp>
 
-namespace loggibud{
+namespace loggibud {
 
-std::vector<std::vector<double>> evaluateDistsMatrix
-  (const std::vector<int> &viableOptions, const std::vector<Delivery>& deliveries){
+std::vector<std::vector<double>>
+evaluateDistsMatrix(const std::vector<int>& viableOptions, const std::vector<Delivery>& deliveries, bool origin = false)
+{
+
+  // Not sure if that's how i works, but cleaning up our http stuff here
+  curlpp::Cleanup myCleanup;
+  //
+  // preparing the url that's gon be used
+  std::stringstream ss;
+  // ss.precision(4);
+
+  ss << "localhost:5000/table/v1/driving/"
+     // ss << "http://router.project-osrm.org/table/v1/driving/"
+     << deliveries[viableOptions[0]].pt;
+  size_t usedOptions = viableOptions.size();
+  for (size_t i = 1; i < usedOptions; i++) {
+    ss << ';' << deliveries[viableOptions[i]].pt;
+  }
+
+  //
+  // curlpp easymode fun
+  curlpp::Easy myRequest;
+  myRequest.setOpt<curlpp::options::Url>(ss.str());
+  // after setting URL we can clear stringstream
+  ss.str("");
+  // making the request write straight to the ss stringstream avoids cluttering the cout
+  myRequest.setOpt(curlpp::options::WriteStream(&ss));
+  //
+  try {
+    myRequest.perform();
+  } catch (curlpp::RuntimeError& e) {
+    std::cout << e.what() << std::endl;
+  }
+
+  // setting up the json file
+  json osrmOut;
+  ss >> osrmOut;
+
+  std::vector<std::vector<double>> distances = osrmOut["durations"];
+
+  // this seems to work ok, but bugs if you do something like tensor.push_back(evaluateDistsMatrix(vec));
+  return distances;
+}
+
+std::vector<double>
+evaluateDistsfromPoint(const std::vector<Delivery>& allDeliveries, const std::vector<int>& viableOptions, int source_index = 0)
+{
+
+  // Not sure if that's how i works, but cleaning up our http stuff here
+  curlpp::Cleanup myCleanup;
+  //
+  // preparing the url that's gon be used
+  std::stringstream ss;
+  // ss.precision(4);
+  ss << "localhost:5000/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
+  // ss << "http://router.project-osrm.org/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
+  size_t usedOptions = viableOptions.size();
+  for (size_t i = 0; i < usedOptions; i++) {
+    ss << ';' << allDeliveries[viableOptions[i]].pt;
+  }
+  // Same options as in loggibud documentation
+  ss << "?sources=0";
+  //
+  // curlpp easymode fun
+  curlpp::Easy myRequest;
+  myRequest.setOpt<curlpp::options::Url>(ss.str());
+  // after setting URL we can clear stringstream
+  ss.str("");
+  // making the request write straight to the ss stringstream avoids cluttering the cout
+  myRequest.setOpt(curlpp::options::WriteStream(&ss));
+  //
+  try {
+    myRequest.perform();
+  } catch (curlpp::RuntimeError& e) {
+    std::cout << e.what() << std::endl;
+  }
+
+  // setting up the json file
+  // std::cout << "\n" << ss.str() << "\n";
+  json osrmOut;
+  ss >> osrmOut;
+
+  std::vector<double> outputs;
+  for (size_t i = 0; i < usedOptions; i++) {
+    outputs.push_back(osrmOut["durations"][0][i]);
+  }
+  return outputs;
+}
+
+double
+evaluateRouteDistanceOSRM(const std::vector<int>& route, const std::vector<Delivery>& allDeliveries)
+{
+
+  // Not sure if that's how i works, but cleaning up our http stuff here
+  curlpp::Cleanup myCleanup;
+  //
+  // preparing the url that's gon be used
+  std::stringstream ss;
+  ss.precision(4);
+  ss << "localhost:5000/route/v1/driving/" << allDeliveries[route[0]].pt;
+  // ss << "http://router.project-osrm.org/route/v1/driving/" << allDeliveries[route[0]].pt;
+  // TODO: test to see how OSRM deals with it!
+  for (int i = 1; i < route.size(); i++) {
+    ss << ';' << allDeliveries[route[i]].pt;
+  }
+  // Same options as in loggibud documentation
+  ss << ';' << allDeliveries[route[0]].pt;
+  // ss << "?annotations=distance&continue_straight=false";
+  //
+  // curlpp easymode fun
+  curlpp::Easy myRequest;
+  myRequest.setOpt<curlpp::options::Url>(ss.str());
+  // after setting URL we can clear stringstream
+  ss.str("");
+  // making the request write straight to the ss stringstream avoids cluttering the cout
+  myRequest.setOpt(curlpp::options::WriteStream(&ss));
+  //
+  try {
+    myRequest.perform();
+  } catch (curlpp::RuntimeError& e) {
+    std::cout << e.what() << std::endl;
+  }
+
+  // setting up the json file
+  json osrmOut;
+  ss >> osrmOut;
+  //
+  // returning sum of all distances
+  return osrmOut["routes"][0]["distance"];
+}
+
+double
+evaluateInstanceOSRM(const std::vector<std::vector<int>>& routes, const std::vector<Delivery>& allDeliveries)
+{
+  double instanceDistance = 0;
+  for (auto i : routes) {
+    double thisdist = evaluateRouteDistanceOSRM(i, allDeliveries);
+    // std::cout << thisdist << '\t';
+    instanceDistance += thisdist;
+  }
+  return instanceDistance;
+}
+
+double
+evaluateRouteDistanceClusters(
+  const std::vector<int>& route,
+  const std::vector<Delivery>& allDeliveries,
+  const std::unordered_map<size_t, std::unordered_map<size_t, double>>& distMap,
+  size_t cluster_n
+  )
+{
+  size_t route_sz = route.size();
+  double routeDistance = 0.0;
+  for (int stop = 1; stop < route_sz; stop++) {
+    // assert(cluster_n == allDeliveries[route[stop]].cluster);
+    routeDistance += distMap.at(route[stop - 1]).at(route[stop]);
+  }
+  return routeDistance;
+}
+
+double
+evaluateInstanceClusters(
+  const std::vector<std::vector<int>>& routes,
+  const std::vector<Delivery>& allDeliveries,
+  const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>& distMaps)
+{
+  std::cout << "Initializing evaluator" << std::endl;
+  double instanceDistance = 0;
+  for (auto route : routes) {
+    size_t route_cluster = allDeliveries[route.back()].cluster;
     
-    // Not sure if that's how i works, but cleaning up our http stuff here
-    curlpp::Cleanup myCleanup;
-    //
-    // preparing the url that's gon be used
-    std::stringstream ss;
-    // ss.precision(4);
-  
-    ss << "localhost:5000/table/v1/driving/"
-    // ss << "http://router.project-osrm.org/table/v1/driving/"
-       << deliveries[viableOptions[0]].pt;
-    size_t usedOptions = viableOptions.size();
-    for (size_t i = 1; i < usedOptions; i++){
-      ss << ';' << deliveries[viableOptions[i]].pt;
-    }
-  
-    //
-    // curlpp easymode fun
-    curlpp::Easy myRequest;
-    myRequest.setOpt<curlpp::options::Url>(ss.str());
-    // after setting URL we can clear stringstream
-    ss.str("");
-    // making the request write straight to the ss stringstream avoids cluttering the cout
-    myRequest.setOpt(curlpp::options::WriteStream(&ss));
-    //
-    try{
-      myRequest.perform();
-    }
-    catch(curlpp::RuntimeError & e){
-      std::cout << e.what() << std::endl;
-    }
+    std::cout 
+      << "Evaluating specific route with cluster " << allDeliveries[route[0]].cluster
+      << "\tdistMaps has size " << distMaps.size() << std::endl;
+    for (auto stop: route)
 
-    // setting up the json file
-    json osrmOut;
-    ss >> osrmOut;
-
-    std::vector<std::vector<double>> distances = osrmOut["durations"];
-
-    // this seems to work ok, but bugs if you do something like tensor.push_back(evaluateDistsMatrix(vec));
-    return distances;
+    // double thisDist = evaluateRouteDistanceClusters(route, allDeliveries, distMaps.at(route_cluster), route_cluster);
+    // std::cout << thisDist << '\t';
+    instanceDistance += evaluateRouteDistanceClusters(route, allDeliveries, distMaps.at(route_cluster), route_cluster);;
   }
-  
+  return instanceDistance;
+}
 
-  std::vector<double> evaluateDistsfromPoint
-  (const std::vector<Delivery> &allDeliveries, const std::vector<int> &viableOptions, int source_index = 0){
-    
-    // Not sure if that's how i works, but cleaning up our http stuff here
-    curlpp::Cleanup myCleanup;
-    //
-    // preparing the url that's gon be used
-    std::stringstream ss;
-    // ss.precision(4);
-    ss << "localhost:5000/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
-    // ss << "http://router.project-osrm.org/table/v1/driving/" << allDeliveries[viableOptions[source_index]].pt;
-    // TODO: test to see how OSRM deals with it!
-    size_t usedOptions = viableOptions.size();
-    for (size_t i = 0; i < usedOptions; i++){
-      ss << ';' << allDeliveries[viableOptions[i]].pt;
-    }
-    // Same options as in loggibud documentation
-    ss << "?sources=0";
-    //
-    // curlpp easymode fun
-    curlpp::Easy myRequest;
-    myRequest.setOpt<curlpp::options::Url>(ss.str());
-    // after setting URL we can clear stringstream
-    ss.str("");
-    // making the request write straight to the ss stringstream avoids cluttering the cout
-    myRequest.setOpt(curlpp::options::WriteStream(&ss));
-    //
-    try{
-      myRequest.perform();
-    }
-    catch(curlpp::RuntimeError & e){
-      std::cout << e.what() << std::endl;
-    }
-
-    // setting up the json file
-    // std::cout << "\n" << ss.str() << "\n";
-    json osrmOut;
-    ss >> osrmOut;
-
-    std::vector<double> outputs;
-    for (size_t i = 0; i < usedOptions; i++){
-      outputs.push_back(osrmOut["durations"][0][i]);
-    }   
-    return outputs;
-  }
-
-  double evaluateRouteDistance
-  (const std::vector<int> &route, const std::vector<Delivery> &allDeliveries){
-
-    // Not sure if that's how i works, but cleaning up our http stuff here
-    curlpp::Cleanup myCleanup;
-    //
-    // preparing the url that's gon be used
-    std::stringstream ss;
-    ss.precision(4);
-    ss << "localhost:5000/route/v1/driving/" << allDeliveries[route[0]].pt;
-    // ss << "http://router.project-osrm.org/route/v1/driving/" << allDeliveries[route[0]].pt;
-    // TODO: test to see how OSRM deals with it!
-    for (int i = 1; i < route.size(); i++){
-      ss << ';' << allDeliveries[route[i]].pt;
-    }
-    // Same options as in loggibud documentation
-    ss << ';' << allDeliveries[route[0]].pt; 
-    // ss << "?annotations=distance&continue_straight=false";
-    //
-    // curlpp easymode fun
-    curlpp::Easy myRequest;
-    myRequest.setOpt<curlpp::options::Url>(ss.str());
-    // after setting URL we can clear stringstream
-    ss.str("");
-    // making the request write straight to the ss stringstream avoids cluttering the cout
-    myRequest.setOpt(curlpp::options::WriteStream(&ss));
-    //
-    try{
-      myRequest.perform();
-    }
-    catch(curlpp::RuntimeError & e){
-      std::cout << e.what() << std::endl;
-    }
-    
-    // setting up the json file
-    json osrmOut;
-    ss >> osrmOut;
-    //
-    // returning sum of all distances
-    return osrmOut["routes"][0]["distance"];
-  }
-
-  double evaluateInstance 
-  (const std::vector<std::vector<int>> &routes, const std::vector<Delivery> &allDeliveries){
-    double instanceDistance = 0;
-    for (auto i: routes){
-      double thisdist = evaluateRouteDistance(i, allDeliveries);
-      // std::cout << thisdist << '\t';
-      instanceDistance += thisdist;
-    }
-    return instanceDistance;
-  }
 } // namespace

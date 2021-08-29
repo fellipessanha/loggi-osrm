@@ -17,13 +17,14 @@ makeMatrixDistances(Instance inst){
   int n_clusters = *std::max_element(clusters.begin(), clusters.end())+1;
 
   const auto deliveries = inst.getAllDeliveries();
-  std::vector<std::vector<int>> clusterMap(n_clusters);
+  std::vector<std::vector<int>> clusterMap(n_clusters, {0});
   std::cout << "\n" << deliveries.size()<< '\t' << n_clusters << '\n';
 
 
   for (int i = 0; i < deliveries.size(); i++){
     // std::cout << i << ": " << clusters[i] <<'\t' << std::flush;
     clusterMap[clusters[i]].push_back(i);
+    assert(clusters[i] == deliveries[i].cluster);
   }
   //
   std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>
@@ -40,6 +41,8 @@ makeMatrixDistances(Instance inst){
           matrix[row][column];
       };
     }
+    for (auto k: dist_map)
+      assert(deliveries[k.first].cluster == clusters[k.first]);
     distances.push_back(dist_map);
   }
   return distances;

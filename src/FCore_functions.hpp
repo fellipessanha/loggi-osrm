@@ -57,33 +57,7 @@ class FCoreLoggi
   // Heuristic Moves //
   /////////////////////
   //
-  /*
-  uptrMoveVPR
-  random2Opt(const ESolutionVRP& candidate)
-  {
-    const std::vector<std::vector<int>>& rt = candidate.first;
-    int n = rt.size();
-    int route_n = 1 + (rand() % (n - 1));
-    //
-    auto optLimits = twoRandNoDepot(rt[route_n].size());
-    //
-    std::pair<int, std::pair<int, int>> mvData;
-    mvData.first = route_n;
-    mvData.second = optLimits;
 
-    return uptrMoveVPR{
-      new VRPMoveTemplate(std::make_pair(route_n, optLimits), opt02)
-    };
-  }
-  //
-  std::function<uptrMoveVPR(const ESolutionVRP&)> fRandom2Opt =
-    [this](const ESolutionVRP& candidate) -> uptrMoveVPR {
-    return this->random2Opt(candidate);
-  };
-*/
-  //
-  //optframe::FNS<ESolutionVRP>
-  //             move_2Opt;
 
   optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> optFC_evaluator; // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!
   optframe::FConstructive<std::vector<std::vector<int>>> optFC_generator;           // CANNOT INITIALIZE HERE! ONLY IN CONSTRUCTOR!

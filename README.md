@@ -36,6 +36,8 @@ Still the first attempt. Did not work because the OSRM docker crashes after a fi
 
 ## hpp files:
 
+- distances-storage.hpp contains the storage of distances in a matrix, as to avoid http requests. I should include said function in context-loader.hpp, but it's hard to compile it, because it needs more structures that also need context-loader.hpp
+
 - FCore_functions.hpp have the functions that will be used in [OptFrame](http://github.com/optframe/optframe/)'s FCore. _Needs a refactor!_
 
 - loggi-context-loader.hpp has all the main class definitions regarding the problem itself.

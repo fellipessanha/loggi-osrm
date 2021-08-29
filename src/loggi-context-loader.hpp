@@ -81,6 +81,7 @@ class Instance
       del.cluster = clusterN;
       //
       clusterList.push_back(clusterN);
+      assert(deliveries[i].cluster == clusterList[i]);
     }
     assert(deliveries.size() == clusterList.size());
   }
