@@ -11,12 +11,18 @@ namespace loggibud {
 const MoveData&
 opt02(const MoveData& moveData, ESolutionVRP& candidate)
 {
-  size_t n = candidate.first.size();
+  std::cout << "\nInside final function:" <<std::endl;
+  int n = candidate.first.size();
+  std::cout << "route: " << n << '\t' << std::flush;
   std::vector<int>& route = candidate.first[moveData.route1];
 
-  auto optLimits = moveData.limits1;
+  auto optLimits = moveData.limitsL;
+  std::cout << "limits: " << optLimits.first << '\t'  << optLimits.second << std::flush;
 
-  n = (optLimits.second - optLimits.first) / 2;
+
+  n = abs(optLimits.second - optLimits.first) / 2;
+  std::cout << '\n' << n << '\t' << std::flush;
+
   assert(n>=0);
   for (auto i = 0; i <= n; i++) {
     std::cout << "saving +i\t" << std::flush;

@@ -3,11 +3,13 @@
 #include <utility>
 #include <random>
 
-std::pair<int, int> twoRandNoDepot(int max)
+std::pair<size_t, size_t> twoRandNoDepot(size_t max)
 {
   // i HAS to be smaller than j
-  int i = (rand() % (max - 2)) + 1;
+  // std::cout << (max - 2) << '\t';
+  size_t i = (rand() % (max - 2))
   // 1 <= j <= pTSP.n - i; j is random
-  int j = i + (rand() % (max - i - 1)) + 1; // TODO: check!!
+  // std::cout << i << '\n' << (max-i-1) << '\t';
+  size_t j = i + (rand() % (max - i - 1)) + 1;
   return std::make_pair(i, j);
 }

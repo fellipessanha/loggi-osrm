@@ -49,7 +49,8 @@ class Move2Opt : public optframe::Move<ESolutionVRP>
 {
 protected:
   const Instance& instance;
-  MoveData& mvData;
+  // This bugs if it's a reference. 
+  MoveData mvData;
   const std::vector<Delivery>& allDeliveries;
   const int capacity;
 
@@ -60,6 +61,9 @@ public:
     , allDeliveries{ inst.getAllDeliveries() }
     , capacity{ inst.getCap() }
   {
+    // std::cout << "\nInside Move2Opt:\t" << mvData.limitsL.first << ", " << mvData.limitsL.second
+    //           << "\nInside Move2Opt:\t" << mvDt.limitsL.first << ", " << mvDt.limitsL.second << std::endl;
+
   }
 
   bool canBeApplied(const ESolutionVRP& s) override
@@ -69,6 +73,7 @@ public:
 
   uptrMoveVPR apply(ESolutionVRP& se)
   {
+
     opt02(mvData, se);
 
     return uptrMoveVPR(new Move2Opt(instance, mvData));
@@ -229,11 +234,14 @@ private:
   int opt02min = 0;
 
 public:
-  NSIterator2Opt(const std::vector<std::vector<int>>& se, const loggibud::Instance& inst)
+  NSIterator2Opt(const std::vector<std::vector<int>>& se, const loggibud::Instance& inst, loggibud::MoveData mvData = MoveData(0, {0,0}))
     : instance{ inst }
     , candidate{ se }
     , n_routes{ se.size() }
-  {}
+    , mvDt { mvData }
+  {
+    // std::cout << "\nInside NSIterator2Opt\n";
+  }
 
   virtual ~NSIterator2Opt()
   {
@@ -244,22 +252,22 @@ public:
     // Starts from the last element so
     curr_max = candidate[mvDt.route1].size() - 1;
     mvDt.route1 = 0;
-    mvDt.limits1.first = 1;
-    mvDt.limits1.second = curr_max;
+    mvDt.limitsL.first = 1;
+    mvDt.limitsL.second = curr_max;
   }
 
   virtual void next() override
   {
-    mvDt.limits1.second--;
-    if (mvDt.limits1.second <= mvDt.limits1.first + opt02min) {
-      if (mvDt.limits1.first == curr_max - (opt02min + 1)) {
+    mvDt.limitsL.second--;
+    if (mvDt.limitsL.second <= mvDt.limitsL.first + opt02min) {
+      if (mvDt.limitsL.first == curr_max - (opt02min + 1)) {
         mvDt.route1++;
         curr_max = candidate[mvDt.route1].size() - 1;
-        mvDt.limits1.first = 1;
-        mvDt.limits1.second = curr_max;
+        mvDt.limitsL.first = 1;
+        mvDt.limitsL.second = curr_max;
       } else {
-        mvDt.limits1.first++;
-        mvDt.limits1.second = curr_max;
+        mvDt.limitsL.first++;
+        mvDt.limitsL.second = curr_max;
       }
     }
   }
@@ -302,9 +310,15 @@ public:
     // random route to apply 2opt
     int route = 1 + rand() % (n - 1);
 
-    auto limits = twoRandNoDepot(n);
+    // std::cout << "route = " << route << std::endl;
+    //           << "limits = " << rep[route].size() << std::endl;
 
-    return uptrMoveVPR(new Move2Opt(instance, MoveData(route, limits)));
+    auto limits = twoRandNoDepot(rep[route].size());
+
+    auto movemove = MoveData(route, limits);
+    // std::cout << "returning Move2Opt" <<std::endl;
+
+    return uptrMoveVPR(new Move2Opt(instance, movemove));
   }
 
   using uptr_iter = std::unique_ptr<optframe::NSIterator<ESolutionVRP>>;
