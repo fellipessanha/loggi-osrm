@@ -160,7 +160,7 @@ evaluateRouteDistanceClusters(
   )
 {
   size_t route_sz = route.size();
-  double routeDistance = 0.0;
+  double routeDistance = distMap.at(route.back()).at(route.front());
   for (int stop = 1; stop < route_sz; stop++) {
     // assert(cluster_n == allDeliveries[route[stop]].cluster);
     routeDistance += distMap.at(route[stop - 1]).at(route[stop]);
@@ -174,14 +174,14 @@ evaluateInstanceClusters(
   const std::vector<Delivery>& allDeliveries,
   const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>& distMaps)
 {
-  std::cout << "Initializing evaluator" << std::endl;
+  // std::cout << "Initializing evaluator" << std::endl;
   double instanceDistance = 0;
   for (auto route : routes) {
     size_t route_cluster = allDeliveries[route.back()].cluster;
     
-    std::cout 
-      << "Evaluating specific route with cluster " << allDeliveries[route[0]].cluster
-      << "\tdistMaps has size " << distMaps.size() << std::endl;
+    // std::cout 
+    //   << "Evaluating specific route with cluster " << allDeliveries[route[0]].cluster
+    //   << "\tdistMaps has size " << distMaps.size() << std::endl;
     for (auto stop: route)
 
     // double thisDist = evaluateRouteDistanceClusters(route, allDeliveries, distMaps.at(route_cluster), route_cluster);

@@ -35,7 +35,8 @@ pucaClusterGenerator(
   const int& vehicle_cap,
   const int& initial_routes)
 {
-  std::cout << "\nPUCA CLUSTER GENERATOR\n";
+  // std::cout << "\nPUCA CLUSTER GENERATOR\n";
+  //
   // return variable
   std::vector<std::vector<int>> routes;
   //
@@ -44,8 +45,8 @@ pucaClusterGenerator(
   for (auto it = distMap.begin(); it != distMap.end(); ++it) {
     possible.insert(it->first);
   }
-  // 0 has to be in every map because every stop may come after the deposit.
-  // We have to remove it here, or the program tries to input it twice every route.
+  // 0 has to be in every map because every stop may be adjacent the deposit.
+  // We have to remove it here, or the program will try to input it twice every route.
   possible.erase(0);
 
   while (possible.size()) {
@@ -66,7 +67,7 @@ pucaClusterGenerator(
     //
     // Erases used stop from 'possible' array, as to avoid repetitions
     possible.erase(rng_key);
-    
+
     // Parallel insertion algorithm also taken from Puca Thesis
     while (thisCapacity < vehicle_cap && possible.size()) {
 
@@ -81,25 +82,26 @@ pucaClusterGenerator(
       //
       // std::cout << "map constructed just fine" <<std::endl;
       auto minDistance = std::min_element(
-        thisMap.begin(), thisMap.end(), [](const auto& l, const auto& r) { return (l.second < r.second); });
+        thisMap.begin(), thisMap.end(),
+        [](const auto& l, const auto& r) { return (l.second < r.second); }
+      );
       //
       // std::cout << "min found just fine" <<std::endl;
 
       const auto& nextStop = allDeliveries[minDistance->first];
       //
-      
+
       if (nextStop.size + thisCapacity <= vehicle_cap) {
         thisRoute.push_back(minDistance->first);
         thisCapacity += nextStop.size;
         possible.erase(minDistance->first);
-      }
-      else{
+      } else {
         break;
       }
     }
     routes.push_back(thisRoute);
-    std::cout << "\nthe pushed back route has a total dist of " << evaluateRouteDistanceClusters(thisRoute, allDeliveries, distMap, initial_routes)
-              << "\tpossibles' size is currently: " << possible.size() << "\tsolution currently has " << routes.size() << " routes\n";
+    // std::cout << "\nthe pushed back route has a total dist of " << evaluateRouteDistanceClusters(thisRoute, allDeliveries, distMap, initial_routes)
+    //           << "\tpossibles' size is currently: " << possible.size() << "\tsolution currently has " << routes.size() << " routes\n";
   }
   return routes;
 }
@@ -111,7 +113,7 @@ generatefromClusters(
   int vehicle_cap,
   int initial_routes)
 {
-  std::cout << "INITIALIZING GENERATION BY CLUSTERS\n";
+  // std::cout << "INITIALIZING GENERATION BY CLUSTERS\n";
 
   std::vector<std::vector<int>> generatedRoutes;
 
@@ -120,19 +122,17 @@ generatefromClusters(
 
     std::vector<std::vector<int>> thisCluster =
       pucaClusterGenerator(allDeliveries, distMap, vehicle_cap, i);
-    std::cout << "\nroutes.size() = " << generatedRoutes.size() << "\t routing finished just fine\n" << std::endl;
+    // std::cout << "\nroutes.size() = " << generatedRoutes.size() << "\t routing finished just fine\n"
+              // << std::endl;
     for (auto i : thisCluster) {
       generatedRoutes.push_back(i);
     }
   }
-  std::cout << "\nGENERATION COMPLETE" <<std::endl;
+  // std::cout << "\nGENERATION COMPLETE" << std::endl;
   return generatedRoutes;
 }
 
 } // namespace
-
-
-
 
 /* old Puca Generator
   std::vector<std::vector<int>>

@@ -18,8 +18,8 @@ struct MoveData
     : route1(r1)
     , limitsL(lim)
   {
-    std::cout  << "\ninside constructor:\t"
-    << route1 << '\t' << limitsL.first << ", " << limitsL.second << std::endl;
+    // std::cout  << "\ninside constructor:\t"
+    // << route1 << '\t' << limitsL.first << ", " << limitsL.second << std::endl;
   }
 
   // Constructor for simple interroute moves
@@ -42,7 +42,7 @@ struct MoveData
     limitsL = mv.limitsL;
     route2 = mv.route2;
     limitsR = mv.limitsR;
-    std::cout << "using constructor by MoveData:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
+    // std::cout << "using constructor by MoveData:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
   }
 
   MoveData(MoveData&& mv)
@@ -51,7 +51,7 @@ struct MoveData
     , route2{ mv.route2 }
     , limitsR{ mv.limitsR }
   {
-    std::cout << "using constructor by MoveData&&:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
+    // std::cout << "using constructor by MoveData&&:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
   }
 
   MoveData(MoveData& mv)
@@ -60,7 +60,7 @@ struct MoveData
     , route2{ mv.route2 }
     , limitsR{ mv.limitsR }
   {
-    std::cout << "using constructor by MoveData&:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
+    // std::cout << "using constructor by MoveData&:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
   }
 
   MoveData(MoveData* mv)
@@ -69,7 +69,7 @@ struct MoveData
     , route2{ mv->route2 }
     , limitsR{ mv->limitsR }
   {
-    std::cout << "using constructor by MoveData*:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
+    // std::cout << "using constructor by MoveData*:\t" << route1 << '\t' << limitsL.first << '\t' << limitsL.second << std::endl;
   }
 
   MoveData()

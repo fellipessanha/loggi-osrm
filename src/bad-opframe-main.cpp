@@ -3,6 +3,8 @@
 
 #include "distances-storage.hpp"
 
+#include <cstdlib>
+
 // #include "FCore_functions.hpp"
 
 class MyEvaluator final
@@ -34,8 +36,15 @@ public:
 };
 
 int
-main()
+main(int argc, const char** argv)
 {
+
+  int time;
+  if (argc > 1)
+    time =  std::atoi(argv[1]);
+  else
+    time = 60;
+  
   // loading instance data
   loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json", "clusterings/kmeans-clusteringLabels.json");
 
@@ -100,7 +109,8 @@ main()
 
   sa.setSilentR();
 
-  auto status = sa.search(30);
+  std::cout<< time << std::endl;
+  auto status = sa.search(time);
 
   return 0;
 } 
