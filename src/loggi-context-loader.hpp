@@ -35,6 +35,10 @@ class Instance
   std::vector<Delivery> deliveries;
   std::vector<int> clusterList;
   //
+  // distancesFromOrigin[stop].first  -> from origin to point
+  // distancesFromOrigin[stop].second -> from point to origin
+  std::vector<std::pair<double, double>> distancesFromOrigin;
+  //
   void loadDetails(json jInstance, json jDelivery)
   {
     // Auxiliar text things
@@ -104,6 +108,15 @@ public:
 
   const std::vector<int>& getClusters() const{
     return clusterList;
+  }
+
+  const std::string& getOrigin() const{
+    return origin;
+  }
+
+  // TODO: desgambiarrar
+  std::vector<std::pair<double, double>>& GAMBIARRAgetdistsFromOrigin(){
+    return distancesFromOrigin;
   }
 
   Instance(const std::string& instancePath, const std::string& deliveryPath, const std::string& clusterPath = "")

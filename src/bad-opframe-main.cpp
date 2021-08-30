@@ -47,13 +47,13 @@ main(int argc, const char** argv)
   
   // loading instance data
   loggibud::Instance instance("data/cvrp-0-rj-0.json", "data/rj-0.json", "clusterings/kmeans-clusteringLabels.json");
-
   /////////////////////////// 
   // getting relevant info //
   /////////////////////////// 
   //
   const auto& deliveriesList = instance.getAllDeliveries();
   const auto clustersMap = loggibud::makeMatrixDistances(instance);
+  loggibud::makeDistancesFromOrigin(instance);
   const int cap = instance.getCap();
   const int min_cars = deliveriesList.size() / cap;
 
@@ -109,7 +109,6 @@ main(int argc, const char** argv)
 
   sa.setSilentR();
 
-  std::cout<< time << std::endl;
   auto status = sa.search(time);
 
   return 0;
