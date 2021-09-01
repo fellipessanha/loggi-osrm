@@ -30,11 +30,12 @@ firstBadSolution(const std::vector<Delivery>& allDeliveries, const int& vehicle_
 }
 std::vector<std::vector<int>>
 pucaClusterGenerator(
-  const std::vector<Delivery>& allDeliveries,
+  Instance& instance,
   const std::unordered_map<size_t, std::unordered_map<size_t, double>> distMap,
-  const int& vehicle_cap,
-  const int& initial_routes)
+  const int& vehicle_cap)
 {
+  const auto& allDeliveries = instance.getAllDeliveries();
+  const auto& originDists = instance.getdistsFromOrigin();
   // std::cout << "\nPUCA CLUSTER GENERATOR\n";
   //
   // return variable
@@ -54,8 +55,9 @@ pucaClusterGenerator(
     // A route has a thisRoute vector and thisCapacity int
     std::vector<int> thisRoute;
     int thisCapacity = 0;
-    // Every route starts with the deposit, which has index 0
-    thisRoute.push_back(0);
+    // The deposit is handled out of the vector, the lines below are now deprecated
+    // // Every route starts with the deposit, which has index 0
+    // // thisRoute.push_back(0);
     //
     size_t rng_index = rand() % possible.size();
     auto rng_key = std::next(possible.begin(), rng_index);
@@ -99,6 +101,9 @@ pucaClusterGenerator(
         break;
       }
     }
+    // for (auto i: thisRoute)
+    //   std::cout << i << '\t';
+    // std::cout << "\n\n";
     routes.push_back(thisRoute);
     // std::cout << "\nthe pushed back route has a total dist of " << evaluateRouteDistanceClusters(thisRoute, allDeliveries, distMap, initial_routes)
     //           << "\tpossibles' size is currently: " << possible.size() << "\tsolution currently has " << routes.size() << " routes\n";
@@ -108,11 +113,12 @@ pucaClusterGenerator(
 
 std::vector<std::vector<int>>
 generatefromClusters(
-  const std::vector<Delivery>& allDeliveries,
-  const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>& distanceClusters,
-  int vehicle_cap,
-  int initial_routes)
+  Instance& instance,
+  int vehicle_cap)
 {
+  // const auto& allDeliveries = instance.getAllDeliveries();
+  const auto& distanceClusters = instance.getClusterMap();
+  const auto& originDistances = instance.getdistsFromOrigin();
   // std::cout << "INITIALIZING GENERATION BY CLUSTERS\n";
 
   std::vector<std::vector<int>> generatedRoutes;
@@ -121,7 +127,7 @@ generatefromClusters(
     auto distMap = distanceClusters.at(i);
 
     std::vector<std::vector<int>> thisCluster =
-      pucaClusterGenerator(allDeliveries, distMap, vehicle_cap, i);
+      pucaClusterGenerator(instance, distMap, vehicle_cap);
     // std::cout << "\nroutes.size() = " << generatedRoutes.size() << "\t routing finished just fine\n"
               // << std::endl;
     for (auto i : thisCluster) {

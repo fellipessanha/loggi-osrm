@@ -22,6 +22,7 @@ evaluateDistsMatrix(const std::vector<int>& viableOptions, const std::vector<Del
   ss << "localhost:5000/table/v1/driving/"
      // ss << "http://router.project-osrm.org/table/v1/driving/"
      << deliveries[viableOptions[0]].pt;
+  //
   size_t usedOptions = viableOptions.size();
   for (size_t i = 1; i < usedOptions; i++) {
     ss << ';' << deliveries[viableOptions[i]].pt;
@@ -63,14 +64,13 @@ evaluateDistsfromPointString(const std::string& viableOptions, const std::string
   // preparing the url that's gon be used
   std::stringstream ss;
   // ss << "http://router.project-osrm.org/table/v1/driving/"
-  ss << "localhost:5000/table/v1/driving/" 
-    << source_coords << ';' << viableOptions;
+  ss << "localhost:5000/table/v1/driving/"
+     << source_coords << ';' << viableOptions;
   //
   // Same options as in loggibud documentation
-  if (sources){
-    ss << "?sources=0" ;
-  }
-  else{
+  if (sources) {
+    ss << "?sources=0";
+  } else {
     ss << "?destinations=0";
   }
   //
@@ -88,7 +88,6 @@ evaluateDistsfromPointString(const std::string& viableOptions, const std::string
     std::cout << e.what() << std::endl;
   }
 
-
   // setting up the json file
   // std::cout << "\n" << ss.str() << "\n";
   json osrmOut;
@@ -97,23 +96,20 @@ evaluateDistsfromPointString(const std::string& viableOptions, const std::string
   auto aux = osrmOut["durations"];
 
   std::vector<double> outputs;
-  if (sources){
+  if (sources) {
     size_t sz = aux[0].size();
-    for (size_t i = 0; i < sz; i++) {
+    for (size_t i = 1; i < sz; i++) {
       outputs.push_back(aux[0][i]);
     }
-  }
-  else{
+  } else {
     size_t sz = aux.size();
-    for (size_t i = 0; i < sz; i++) {
+    for (size_t i = 1; i < sz; i++) {
       outputs.push_back(aux[i][0]);
     }
   }
 
   return outputs;
 }
-
-
 
 double
 evaluateRouteDistanceOSRM(const std::vector<int>& route, const std::vector<Delivery>& allDeliveries)
@@ -172,13 +168,13 @@ evaluateInstanceOSRM(const std::vector<std::vector<int>>& routes, const std::vec
 double
 evaluateRouteDistanceClusters(
   const std::vector<int>& route,
-  const std::vector<Delivery>& allDeliveries,
-  const std::unordered_map<size_t, std::unordered_map<size_t, double>>& distMap,
-  size_t cluster_n
-  )
+  Instance& instance,
+  const size_t cluster_n)
 {
+
+  const auto& distMap = instance.getClusterMap(cluster_n);
   size_t route_sz = route.size();
-  double routeDistance = distMap.at(route.back()).at(route.front());
+  double routeDistance = instance.distFromOrigin(route.front()) + instance.distToOrigin(route.back());
   for (int stop = 1; stop < route_sz; stop++) {
     // assert(cluster_n == allDeliveries[route[stop]].cluster);
     routeDistance += distMap.at(route[stop - 1]).at(route[stop]);
@@ -189,27 +185,24 @@ evaluateRouteDistanceClusters(
 double
 evaluateInstanceClusters(
   const std::vector<std::vector<int>>& routes,
-  const std::vector<Delivery>& allDeliveries,
-  const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>& distMaps)
+  Instance& instance)
 {
   // std::cout << "Initializing evaluator" << std::endl;
   double instanceDistance = 0;
   for (auto route : routes) {
-    size_t route_cluster = allDeliveries[route.back()].cluster;
-    
-    // std::cout 
+    const size_t route_cluster = instance.getClusters(route.back());
+    // std::cout << "route cluster = " << route_cluster << '\n';
+
+    // std::cout
     //   << "Evaluating specific route with cluster " << allDeliveries[route[0]].cluster
     //   << "\tdistMaps has size " << distMaps.size() << std::endl;
-    for (auto stop: route)
+    for (auto stop : route)
 
-    // double thisDist = evaluateRouteDistanceClusters(route, allDeliveries, distMaps.at(route_cluster), route_cluster);
-    // std::cout << thisDist << '\t';
-    instanceDistance += 
-      evaluateRouteDistanceClusters(
-        route,
-        allDeliveries,
-        distMaps.at(route_cluster),
-        route_cluster);
+      instanceDistance +=
+        evaluateRouteDistanceClusters(
+          route,
+          instance,
+          route_cluster);
   }
   return instanceDistance;
 }

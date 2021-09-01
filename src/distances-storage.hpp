@@ -11,27 +11,23 @@ namespace loggibud {
 // I had to store it in maps because the size is no longer uniform
 // We should always call a stop by their position in the Deliveries vector
 // Call by map[cluster_number][x][y], where x and y are destination or origin
-std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>
-makeMatrixDistances(Instance inst)
+void Instance::makeMatrixDistances()
 {
-  const std::vector<int> clusters = inst.getClusters();
-  int n_clusters = *std::max_element(clusters.begin(), clusters.end()) + 1;
+  // const std::vector<int> clusterList = inst.getClusters();
+  int n_clusters = *std::max_element(clusterList.begin(), clusterList.end()) + 1;
 
-  const auto deliveries = inst.getAllDeliveries();
+  // const auto deliveries = inst.getAllDeliveries();
   std::vector<std::vector<int>> clusterMap(n_clusters, { 0 });
   std::cout << "\n"
             << deliveries.size() << '\t' << n_clusters << '\n';
 
   for (int i = 0; i < deliveries.size(); i++) {
     // std::cout << i << ": " << clusters[i] <<'\t' << std::flush;
-    clusterMap[clusters[i]].push_back(i);
-    assert(clusters[i] == deliveries[i].cluster);
+    clusterMap[clusterList[i]].push_back(i);
+    assert(clusterList[i] == deliveries[i].cluster);
   }
   //
-  std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>
-    distances;
-  //
-  for (size_t cluster = 0; cluster < n_clusters; cluster++) {
+for (size_t cluster = 0; cluster < n_clusters; cluster++) {
     const std::vector<int>& thisCluster = clusterMap[cluster];
     auto matrix = evaluateDistsMatrix(thisCluster, deliveries);
 
@@ -43,29 +39,33 @@ makeMatrixDistances(Instance inst)
       };
     }
     for (auto k : dist_map)
-      assert(deliveries[k.first].cluster == clusters[k.first]);
-    distances.push_back(dist_map);
+      assert(deliveries[k.first].cluster == clusterList[k.first]);
+    clusterDistances.push_back(dist_map);
   }
-  return distances;
+  std::cout << "\n\nclusterDistances Modularization worked!\n\n";
 }
 
 // std::vector<std::pair<double, double>>
-void makeDistancesFromOrigin(Instance instance)
+// std::vector<std::pair<double, double>>
+void Instance::makeDistancesFromOrigin()
 {
-  std::cout<< "inside weird function\n";
-  auto deliveries = instance.getAllDeliveries();
-  auto originDistances = instance.GAMBIARRAgetdistsFromOrigin();
-  std::string originPts = instance.getOrigin();
+  size_t sz = deliveries.size();
+  std::vector<std::pair<double, double>> originDistances;
+
   std::string stopsPts = deliveries[0].pt;
+  for (size_t i = 1; i < sz; i++)
+    stopsPts += ';' + deliveries[i].pt;
 
-  for (auto i: deliveries)
-    stopsPts += ';' + i.pt;
 
+  auto toOrigin = evaluateDistsfromPointString(stopsPts, origin, true);
+  auto fromOrigin = evaluateDistsfromPointString(stopsPts, origin, false);
 
-  auto toOrigin = evaluateDistsfromPointString(stopsPts, originPts, true);
-  auto fromOrigin = evaluateDistsfromPointString(stopsPts, originPts, false);
+  std::cout << "totalDeliveries: " << sz << "\ttoOrigin: " << toOrigin.size() << "\tfromOrigin: " << fromOrigin.size() << '\n'; 
 
-  std::cout << "totalDeliveries: " << deliveries.size() << "\ttoOrigin: " << toOrigin.size() << "\tfromOrigin: " << fromOrigin.size(); 
+  for(size_t stop = 0; stop < sz; stop++){
+    distancesFromOrigin.push_back( std::make_pair(fromOrigin[stop], toOrigin[stop]) );
+  }
+  // std::cout << originDistances.size() << '\n';
 }
 
 } // namespace loggibud

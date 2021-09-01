@@ -52,18 +52,17 @@ main(int argc, const char** argv)
   /////////////////////////// 
   //
   const auto& deliveriesList = instance.getAllDeliveries();
-  const auto clustersMap = loggibud::makeMatrixDistances(instance);
-  loggibud::makeDistancesFromOrigin(instance);
+  // const auto clustersMap = loggibud::makeMatrixDistances(instance);
   const int cap = instance.getCap();
   const int min_cars = deliveriesList.size() / cap;
-
+  
   //////////////////////////////
   // setting up the evaluator //
   //////////////////////////////
   //
   std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)>
     evaluation_function = [&](std::vector<std::vector<int>> sol) -> optframe::Evaluation<double> {
-    double score = loggibud::evaluateInstanceClusters(sol, deliveriesList, clustersMap);
+    double score = loggibud::evaluateInstanceClusters(sol, instance);
     return optframe::Evaluation<double>{ score };
   };
   //
@@ -79,7 +78,7 @@ main(int argc, const char** argv)
   //
   std::function<std::vector<std::vector<int>>()>
     badGeneration = [&]() -> std::vector<std::vector<int>> {
-    return loggibud::generatefromClusters(deliveriesList, clustersMap, instance.getCap(), min_cars);
+    return loggibud::generatefromClusters(instance, instance.getCap());
   };
   //
   optframe::FConstructive<std::vector<std::vector<int>>> badGen{

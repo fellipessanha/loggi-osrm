@@ -39,6 +39,11 @@ class Instance
   // distancesFromOrigin[stop].second -> from point to origin
   std::vector<std::pair<double, double>> distancesFromOrigin;
   //
+  std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>
+  clusterDistances;
+
+  //
+
   void loadDetails(json jInstance, json jDelivery)
   {
     // Auxiliar text things
@@ -91,6 +96,9 @@ class Instance
   }
 
 public:
+
+  void makeDistancesFromOrigin();
+
   const int getCap() const
   {
     return vehicle_capacity;
@@ -110,14 +118,38 @@ public:
     return clusterList;
   }
 
+  const int getClusters(size_t stop) const{
+    return clusterList[stop];
+  }
+
   const std::string& getOrigin() const{
     return origin;
   }
 
   // TODO: desgambiarrar
-  std::vector<std::pair<double, double>>& GAMBIARRAgetdistsFromOrigin(){
+  const std::vector<std::pair<double, double>>& getdistsFromOrigin()const{
     return distancesFromOrigin;
   }
+
+  const double& distFromOrigin (size_t stop) const{
+    return distancesFromOrigin[stop].first;
+  }
+  
+  const double& distToOrigin (size_t stop) const{
+    return distancesFromOrigin[stop].second;
+  }
+
+  const std::unordered_map<size_t, std::unordered_map<size_t, double>>&
+  getClusterMap(size_t cluster){
+    return clusterDistances.at(cluster);
+  }
+
+  const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>&
+  getClusterMap(){
+    return clusterDistances;
+  }
+  
+  void makeMatrixDistances();
 
   Instance(const std::string& instancePath, const std::string& deliveryPath, const std::string& clusterPath = "")
   {
@@ -152,6 +184,8 @@ public:
       // std::cout << reader.rdbuf() << '\n' << std::endl;
       reader >> _clusters;
       loadClusters(_clusters);
+      makeDistancesFromOrigin();
+      makeMatrixDistances();
       std::cout << "done!";
     }
   }
