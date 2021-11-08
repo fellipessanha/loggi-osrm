@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include <utility> // std::pair
-#include <vector>  // std::vector
+#include <fstream>  // reading files
 #include <iostream> // cout, strings
-#include <fstream> // reading files
+#include <utility>  // std::pair
+#include <vector>   // std::vector
 //
 #include "../nlohmann/json.hpp"
 using json = nlohmann::json;
@@ -34,15 +34,17 @@ class Instance
   //
   std::vector<Delivery> deliveries;
   std::vector<int> clusterList;
+  size_t n_clusters;
   //
   // distancesFromOrigin[stop].first  -> from origin to point
   // distancesFromOrigin[stop].second -> from point to origin
   std::vector<std::pair<double, double>> distancesFromOrigin;
   //
   std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>
-  clusterDistances;
-
+    clusterDistances;
   //
+  std::vector<int> cluster_of_specific_route;
+  std::vector<std::vector<int>> routes_by_cluster;
 
   void loadDetails(json jInstance, json jDelivery)
   {
@@ -80,8 +82,10 @@ class Instance
     std::cout << "ok!\nsuccesfully loaded " << counter << " delivery points!\n";
   }
 
-  void loadClusters(const json& jClusterData){
-    for (size_t i = 0; i < deliveries.size(); i++){
+  void loadClusters(const json& jClusterData)
+  {
+    int max_cluster = 0;
+    for (size_t i = 0; i < deliveries.size(); i++) {
       Delivery& del = deliveries[i];
       std::string id = del.id;
       //
@@ -91,13 +95,19 @@ class Instance
       //
       clusterList.push_back(clusterN);
       assert(deliveries[i].cluster == clusterList[i]);
+      max_cluster = max(max_cluster, clusterN);
     }
     assert(deliveries.size() == clusterList.size());
+    n_clusters = max_cluster;
   }
 
 public:
-
   void makeDistancesFromOrigin();
+
+  const int getClusterN() const
+  {
+    return n_clusters;
+  }
 
   const int getCap() const
   {
@@ -114,41 +124,74 @@ public:
     return vehicle_capacity;
   }
 
-  const std::vector<int>& getClusters() const{
+  const std::vector<int>& getClusters() const
+  {
     return clusterList;
   }
 
-  const int getClusters(size_t stop) const{
+  const int getClusters(size_t stop) const
+  {
     return clusterList[stop];
   }
 
-  const std::string& getOrigin() const{
+  const std::string& getOrigin() const
+  {
     return origin;
   }
 
   // TODO: desgambiarrar
-  const std::vector<std::pair<double, double>>& getdistsFromOrigin()const{
+  const std::vector<std::pair<double, double>>& getdistsFromOrigin() const
+  {
     return distancesFromOrigin;
   }
 
-  const double& distFromOrigin (size_t stop) const{
+  const double& distFromOrigin(size_t stop) const
+  {
     return distancesFromOrigin[stop].first;
   }
-  
-  const double& distToOrigin (size_t stop) const{
+
+  const double& distToOrigin(size_t stop) const
+  {
     return distancesFromOrigin[stop].second;
   }
 
   const std::unordered_map<size_t, std::unordered_map<size_t, double>>&
-  getClusterMap(size_t cluster){
+  getClusterMap(size_t cluster)
+  {
     return clusterDistances.at(cluster);
   }
 
   const std::vector<std::unordered_map<size_t, std::unordered_map<size_t, double>>>&
-  getClusterMap(){
+  getClusterMap()
+  {
     return clusterDistances;
   }
-  
+
+  std::vector<int>& get_clusters_by_route_vector()
+  {
+    return cluster_of_specific_route;
+  }
+
+  const int get_cluster_of_route(size_t route) const
+  {
+    return cluster_of_specific_route[route];
+  }
+
+  const std::vector<int>& get_routes_in_cluster(size_t cluster) const
+  {
+    return routes_by_cluster[cluster];
+  }
+
+  std::vector<std::vector<int>>& ref_routes_by_cluster()
+  {
+    // std::vector<std::vector<int>> aux_routes_by_cluster(n_clusters);
+    // for (int route_idx = 0; route_idx < cluster_of_specific_route.size(); route_idx++) {
+    //   aux_routes_by_cluster[cluster_of_specific_route[route_idx]].push_back(route_idx);
+    // }
+    // routes_by_cluster = aux_routes_by_cluster;
+    return routes_by_cluster;
+  }
+
   void makeMatrixDistances();
 
   Instance(const std::string& instancePath, const std::string& deliveryPath, const std::string& clusterPath = "")
@@ -156,7 +199,7 @@ public:
     std::cout << "loading files:\n";
     json _instance, _delivery, _clusters;
     //
-    // Using this single ifstream to read all the files. 
+    // Using this single ifstream to read all the files.
     // Must remember to close it after using each time, or else it breaks
     std::ifstream reader(instancePath, std::ifstream::in);
     //
@@ -175,11 +218,10 @@ public:
 
     loadDetails(_instance, _delivery);
 
-    if(clusterPath == ""){
+    if (clusterPath == "") {
       std::cout << "no clusters to read\n";
-    } 
-    else {
-      std:: cout << "loading clusters from \"" << clusterPath << "\"...\t" << std::flush;
+    } else {
+      std::cout << "loading clusters from \"" << clusterPath << "\"...\t" << std::flush;
       reader.open(clusterPath, std::ifstream::in);
       // std::cout << reader.rdbuf() << '\n' << std::endl;
       reader >> _clusters;

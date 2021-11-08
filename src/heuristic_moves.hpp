@@ -43,6 +43,26 @@ swap01(std::vector<std::vector<int>>& candidate)
   candidate[routes.second][j] = candidate[routes.first][i];
 }
 
+MoveData swap10(ESolutionVRP& candidate, MoveData mvDt)
+{
+
+  // shifts 2 adjacent stops from aRoute to bRoute
+  auto& aRoute = candidate.first[mvDt.route1];
+  auto& bRoute = candidate.first[mvDt.route2];
+
+  int posA = mvDt.limitsL.first;
+  int posB = mvDt.limitsL.second;
+  int valB = aRoute[posB];
+
+  // inserting in random position for now
+  //  maybe think about using OSRM to figure a good insert position later
+
+  aRoute.insert(aRoute.begin()+posA, valB);
+  bRoute.erase(bRoute.begin()+posB);
+
+  return MoveData(mvDt.route2, mvDt.route1, std::make_pair(posB, posA));
+}
+
 void
 shift20(std::vector<std::vector<int>>& candidate)
 {

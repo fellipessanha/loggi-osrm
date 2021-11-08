@@ -84,9 +84,7 @@ pucaClusterGenerator(
       //
       // std::cout << "map constructed just fine" <<std::endl;
       auto minDistance = std::min_element(
-        thisMap.begin(), thisMap.end(),
-        [](const auto& l, const auto& r) { return (l.second < r.second); }
-      );
+        thisMap.begin(), thisMap.end(), [](const auto& l, const auto& r) { return (l.second < r.second); });
       //
       // std::cout << "min found just fine" <<std::endl;
 
@@ -122,92 +120,34 @@ generatefromClusters(
   // std::cout << "INITIALIZING GENERATION BY CLUSTERS\n";
 
   std::vector<std::vector<int>> generatedRoutes;
+  std::vector<int> generated_routes_cluster;
+  auto& routes_by_cluster = instance.ref_routes_by_cluster();
 
-  for (size_t i = 0; i < distanceClusters.size(); i++) {
-    auto distMap = distanceClusters.at(i);
+  for (size_t cluster = 0; cluster < distanceClusters.size(); cluster++) {
+    auto distMap = distanceClusters.at(cluster);
 
     std::vector<std::vector<int>> thisCluster =
       pucaClusterGenerator(instance, distMap, vehicle_cap);
     // std::cout << "\nroutes.size() = " << generatedRoutes.size() << "\t routing finished just fine\n"
-              // << std::endl;
-    for (auto i : thisCluster) {
-      generatedRoutes.push_back(i);
+    // << std::endl;
+    routes for (auto generated_route : thisCluster)
+    {
+      generatedRoutes.push_back(generated_route);
+      generated_routes_cluster.push_back(cluster);
     }
   }
   // std::cout << "\nGENERATION COMPLETE" << std::endl;
+  auto& instance_routes_cluster = instance.get_clusters_by_route_vector();
+  instance_routes_cluster = generated_routes_cluster;
+  assert(instance_routes_cluster.size() == generated_routes_cluster.size());
+
+  instance.set_routes_in_cluster();
+
+  for (int i = 0; i < instance_routes_cluster.size(); i++) {
+    assert(instance_routes_cluster[i] == generated_routes_cluster[i]);
+  }
+
   return generatedRoutes;
 }
 
-} // namespace
-
-/* old Puca Generator
-  std::vector<std::vector<int>>
-  pucaGenerator(
-    const std::vector<Delivery> &allDeliveries, 
-    const int &vehicle_cap, 
-    const int &initial_routes){
-
-    std::cout << "\nPUCA GENERATOR\n";
-    // return variable
-    std::vector<std::vector<int>> routes;
-    //
-    // Where we the stops without allocated
-    std::vector<int> possible(allDeliveries.size() - 1, 1);
-    std::iota(possible.begin(), possible.end(), 1);
-
-    for (int i = 0; i < initial_routes; i++)
-    {
-      std::cout << "routes vector has " << routes.size() << " elements\n";
-
-      // A route has a thisRoute vector and thisCapacity int
-      std::vector<int> thisRoute;
-      int thisCapacity = 0;
-      // Every route starts with the deposit, which has index 0
-      thisRoute.push_back(0);
-      //
-      int rng_index = (rand() % (possible.size() - 1));
-      int rng_key = possible[rng_index];
-      //
-      // Inserts random first stop into route
-      thisRoute.push_back(rng_key);
-      thisCapacity += allDeliveries[rng_key].size;
-      //
-      // Inserts a random stop and erases it from 'possible' array
-      possible.erase(possible.begin() + rng_index);
-
-      // Parallel insertion algorithm also taken from Puca Thesis
-      std::cout << "making OSRM request\n";
-      std::vector<double> dists =
-          evaluateDistsfromPoint(allDeliveries, possible, thisRoute.back());
-      std::cout << "OSRM request made\n";
-
-      while (thisCapacity < vehicle_cap && possible.size())
-      {
-        std::cout << "this route has " << thisRoute.size() << " stops\n";
-
-        // Gets minimum distance from last stop (can be improved!)
-        std::min_element(dists.begin(), dists.end());
-        size_t min_index = std::distance(
-            dists.begin(), std::min_element(dists.begin(), dists.end()));
-
-        auto nextStop = allDeliveries[possible[min_index]];
-
-        if (nextStop.size + thisCapacity <= vehicle_cap)
-        {
-          thisRoute.push_back(possible[min_index]);
-          thisCapacity += nextStop.size;
-          possible.erase(possible.begin() + min_index);
-          dists.erase(dists.begin() + min_index);
-        }
-        else
-        {
-          routes.push_back(thisRoute);
-          std::cout << "\nthe pushed back route has a total dist of " << evaluateRouteDistanceOSRM(thisRoute, allDeliveries) <<"\n";
-          std::cout << "possibles' size is currently: " << possible.size() << "\n";
-          break;
-        }
-      }
-    }
-    return routes;
-  }
-  */
+}
