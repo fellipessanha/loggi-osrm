@@ -8,6 +8,7 @@
 			"args": [
 				"-std=c++17",
 				"-I/home/imcoelho/git-reps/optframe/src/",
+				"-I/usr/local/include/",
 				"-g",
 				"${workspaceRoot}/src/main-loggi.cpp",
 				"-o",
