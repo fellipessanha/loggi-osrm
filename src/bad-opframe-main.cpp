@@ -15,7 +15,6 @@ public:
   const loggibud::Instance& instance;
   const std::vector<loggibud::Delivery> deliveriesList;
   //
-  // can't be const, should ask Igor why
   optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE>& ev;
 
   //, std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)> _feval)

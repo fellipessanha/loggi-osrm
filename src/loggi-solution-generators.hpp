@@ -121,7 +121,6 @@ generatefromClusters(
 
   std::vector<std::vector<int>> generatedRoutes;
   std::vector<int> generated_routes_cluster;
-  auto& routes_by_cluster = instance.ref_routes_by_cluster();
 
   for (size_t cluster = 0; cluster < distanceClusters.size(); cluster++) {
     auto distMap = distanceClusters.at(cluster);
@@ -130,8 +129,7 @@ generatefromClusters(
       pucaClusterGenerator(instance, distMap, vehicle_cap);
     // std::cout << "\nroutes.size() = " << generatedRoutes.size() << "\t routing finished just fine\n"
     // << std::endl;
-    routes for (auto generated_route : thisCluster)
-    {
+    for (auto generated_route : thisCluster) {
       generatedRoutes.push_back(generated_route);
       generated_routes_cluster.push_back(cluster);
     }
@@ -140,8 +138,6 @@ generatefromClusters(
   auto& instance_routes_cluster = instance.get_clusters_by_route_vector();
   instance_routes_cluster = generated_routes_cluster;
   assert(instance_routes_cluster.size() == generated_routes_cluster.size());
-
-  instance.set_routes_in_cluster();
 
   for (int i = 0; i < instance_routes_cluster.size(); i++) {
     assert(instance_routes_cluster[i] == generated_routes_cluster[i]);
