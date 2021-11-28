@@ -79,139 +79,29 @@ public:
     return uptrMoveVPR(new Move2Opt(instance, mvData));
   }
 
-  /*  uptrMoveVPR applyUpdate(ESolutionVRP& se) override
+  // virtual bool operator==(const optframe::Move<ESolutionVRP>& _m) const override // util busca tabu
+  // {
+  //   return false;
+  // }
+
+  std::string toString() const override
   {
-    ESolutionVRP& s = se.first;
-    optframe::Evaluation<>& e = se.second;
-
-    std::vector<std::vector<int>>& rep = s.getR();
-    int f = 0;
-    if (rep(x1, y1).left == rep(x1, y1 - 1).right)
-      f++;
-    if (rep(x1, y1).up == rep(x1 - 1, y1).down)
-      f++;
-    if (rep(x1, y1).right == rep(x1, y1 + 1).left)
-      f++;
-    if (rep(x1, y1).down == rep(x1 + 1, y1).up)
-      f++;
-
-    int g = 0;
-    if ((rep(x2, y2).left == rep(x2, y2 - 1).right) && !((x2 == x1) && ((y2 - 1) == y1)))
-      g++;
-    if ((rep(x2, y2).up == rep(x2 - 1, y2).down) && !(((x2 - 1) == x1) && (y2 == y1)))
-      g++;
-    if ((rep(x2, y2).right == rep(x2, y2 + 1).left) && !((x2 == x1) && ((y2 + 1) == y1)))
-      g++;
-    if ((rep(x2, y2).down == rep(x2 + 1, y2).up) && !(((x2 + 1) == x1) && (y2 == y1)))
-      g++;
-
-    uptrMoveVPR rev = apply(se);
-
-    int f2 = 0;
-    if (rep(x1, y1).left == rep(x1, y1 - 1).right)
-      f2++;
-    if (rep(x1, y1).up == rep(x1 - 1, y1).down)
-      f2++;
-    if (rep(x1, y1).right == rep(x1, y1 + 1).left)
-      f2++;
-    if (rep(x1, y1).down == rep(x1 + 1, y1).up)
-      f2++;
-
-    int g2 = 0;
-    if ((rep(x2, y2).left == rep(x2, y2 - 1).right) && !((x2 == x1) && ((y2 - 1) == y1)))
-      g2++;
-    if ((rep(x2, y2).up == rep(x2 - 1, y2).down) && !(((x2 - 1) == x1) && (y2 == y1)))
-      g2++;
-    if ((rep(x2, y2).right == rep(x2, y2 + 1).left) && !((x2 == x1) && ((y2 + 1) == y1)))
-      g2++;
-    if ((rep(x2, y2).down == rep(x2 + 1, y2).up) && !(((x2 + 1) == x1) && (y2 == y1)))
-      g2++;
-
-    e.setObjFunction(e.getObjFunction() + (f2 - f));
-    e.setObjFunction(e.getObjFunction() + (g2 - g));
-
-    return rev;
-  } */
-
-  /*  op<optframe::Evaluation<>> cost(const pair<ESolutionVRP, optframe::Evaluation<>>& se, bool allowEstimated) override
-  {
-    const ESolutionVRP& s = se.first;
-    //const optframe::Evaluation<>& e = se.second;
-
-    const std::vector<std::vector<int>>& rep = s.getR();
-    // Calculus for the slot (x1, y1)
-    double f1 = 0;
-    if (rep(x1, y1).left == rep(x1, y1 - 1).right)
-      f1++;
-    if (rep(x1, y1).up == rep(x1 - 1, y1).down)
-      f1++;
-    if (rep(x1, y1).right == rep(x1, y1 + 1).left)
-      f1++;
-    if (rep(x1, y1).down == rep(x1 + 1, y1).up)
-      f1++;
-
-    int f2 = 0;
-    int neighbor = 0;
-
-    if ((x1 == x2) && (y1 - 1 == y2))
-      neighbor++;
-    if (rep(x2, y2).left == rep(x1, y1 - 1 + neighbor).right)
-      f2++;
-    neighbor = 0;
-
-    if ((x1 - 1 == x2) && (y1 == y2))
-      neighbor++;
-    if (rep(x2, y2).up == rep(x1 - 1 + neighbor, y1).down)
-      f2++;
-    neighbor = 0;
-
-    if ((x1 == x2) && (y1 + 1 == y2))
-      neighbor++;
-    if (rep(x2, y2).right == rep(x1, y1 + 1 - neighbor).left)
-      f2++;
-    neighbor = 0;
-
-    if ((x1 + 1 == x2) && (y1 == y2))
-      neighbor++;
-    if (rep(x2, y2).down == rep(x1 + 1 - neighbor, y1).up)
-      f2++;
-    neighbor = 0;
-
-    // Calculus for the slot (x2, y2)
-    int g1 = 0;
-    if ((rep(x2, y2).left == rep(x2, y2 - 1).right) && !((x2 == x1) && ((y2 - 1) == y1)))
-      g1++;
-    if ((rep(x2, y2).up == rep(x2 - 1, y2).down) && !(((x2 - 1) == x1) && (y2 == y1)))
-      g1++;
-    if ((rep(x2, y2).right == rep(x2, y2 + 1).left) && !((x2 == x1) && ((y2 + 1) == y1)))
-      g1++;
-    if ((rep(x2, y2).down == rep(x2 + 1, y2).up) && !(((x2 + 1) == x1) && (y2 == y1)))
-      g1++;
-
-    int g2 = 0;
-    if ((rep(x1, y1).left == rep(x2, y2 - 1).right) && !((x2 == x1) && ((y2 - 1) == y1)))
-      g2++;
-    if ((rep(x1, y1).up == rep(x2 - 1, y2).down) && !(((x2 - 1) == x1) && (y2 == y1)))
-      g2++;
-    if ((rep(x1, y1).right == rep(x2, y2 + 1).left) && !((x2 == x1) && ((y2 + 1) == y1)))
-      g2++;
-    if ((rep(x1, y1).down == rep(x2 + 1, y2).up) && !(((x2 + 1) == x1) && (y2 == y1)))
-      g2++;
-
-    double f = (f2 - f1) + (g2 - g1);
-
-    //return new MoveCost<> (f, 0);
-    return make_optional(optframe::Evaluation<>(f, 0));
-  } */
-
-  virtual bool operator==(const optframe::Move<ESolutionVRP>& _m) const override // util busca tabu
-  {
-    //const Move2Opt& m = (const Move2Opt&)_m;
-    //return (m.x1 == x1) && (m.y1 == y1) && (m.x2 == x2) && (m.y2 == y2);
-    return false;
+    std::stringstream ss;
+    ss << "Move2Opt\tmvDt( rt1= " << mvData.route1 << "; limits= (" << mvData.limitsL.first << ", " << mvData.limitsL.second << ")";
+    return ss.str();
   }
 
-  void print() const {}
+  virtual bool operator==(const Move<ESolutionVRP>& _m) const
+  {
+    const Move2Opt& m = (const Move2Opt&)_m; // You can only compare if types are equal
+
+    if (
+      (mvData.route1 == m.mvData.route1) &&
+      ((mvData.limitsL == m.mvData.limitsL) || mvData.limitsL == std::make_pair(m.mvData.limitsL.second, m.mvData.limitsL.first)))
+      return true;
+    else
+      return false;
+  }
 
   // string id() const
   // {
@@ -234,11 +124,11 @@ private:
   int opt02min = 0;
 
 public:
-  NSIterator2Opt(const std::vector<std::vector<int>>& se, const loggibud::Instance& inst, loggibud::MoveData mvData = MoveData(0, {0,0}))
+  NSIterator2Opt(const std::vector<std::vector<int>>& se, const loggibud::Instance& inst, loggibud::MoveData mvData = MoveData(0, { 0, 0 }))
     : instance{ inst }
     , candidate{ se }
     , n_routes{ se.size() }
-    , mvDt { mvData }
+    , mvDt{ mvData }
   {
     // std::cout << "\nInside NSIterator2Opt\n";
   }

@@ -21,7 +21,7 @@ opt02(const MoveData& moveData, ESolutionVRP& candidate)
   for (auto i = 0; i <= n; i++) {
     int j = route[optLimits.first + i];
     route[optLimits.first + i] = route[optLimits.second - i];
-    route[optLimits.second - i] = route[optLimits.first + i];
+    route[optLimits.second - i] = j;
   }
 
   return moveData;
