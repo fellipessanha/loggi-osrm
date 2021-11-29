@@ -49,7 +49,7 @@ class Move2Opt : public optframe::Move<ESolutionVRP>
 {
 protected:
   const Instance& instance;
-  // This bugs if it's a reference. 
+  // This bugs if it's a reference.
   MoveData mvData;
   const std::vector<Delivery>& allDeliveries;
   const int capacity;
@@ -63,11 +63,41 @@ public:
   {
     // std::cout << "\nInside Move2Opt:\t" << mvData.limitsL.first << ", " << mvData.limitsL.second
     //           << "\nInside Move2Opt:\t" << mvDt.limitsL.first << ", " << mvDt.limitsL.second << std::endl;
+  }
 
+  bool independentOf(const Move<ESolutionVRP>& _m) override
+  {
+    auto& m = (Move2Opt&)_m;
+
+    if (mvData.route1 != m.mvData.route1)
+      return true;
+
+    auto mlimits = m.mvData.limitsL;
+    auto limits = mvData.limitsL;
+
+    if (limits.first > mlimits.second)
+      return true;
+
+    if (mlimits.first > limits.second)
+      return true;
+
+    return false;
   }
 
   bool canBeApplied(const ESolutionVRP& s) override
   {
+
+    if (mvData.route1 >= s.first.size())
+      return false;
+
+    int n = s.first.at(mvData.route1).size();
+    auto optLimits = mvData.limitsL;
+
+    if (optLimits.first > optLimits.second)
+      return false;
+    if (optLimits.first >= n || optLimits.second >= n)
+      return false;
+
     return true;
   }
 
@@ -191,6 +221,16 @@ public:
   {
   }
 
+  virtual bool isSolutionIndependent() const override
+  {
+    return true;
+  }
+
+  virtual bool supportsMoveIndependence() const override
+  {
+    return true;
+  }
+
   // inutilizado no VND!
   virtual uptrMoveVPR randomMove(const ESolutionVRP& se) override
   {
@@ -198,12 +238,18 @@ public:
     const int n = rep.size();
 
     // random route to apply 2opt
-    int route = 1 + rand() % (n - 1);
+    int route = rg.rand(n);
 
     // std::cout << "route = " << route << std::endl;
     //           << "limits = " << rep[route].size() << std::endl;
 
-    auto limits = twoRandNoDepot(rep[route].size());
+    auto limits = twoRandNoDepotwithrandgen(rep.at(route).size(), rg);
+
+    // std::cout << "xMoveData: (" << route << ", {" << limits.first << ", " << limits.second << "});"
+    //           << "\t size = " << rep.at(route).size() << "\t" << std::flush;
+
+    assert(limits.first < rep.at(route).size());
+    assert(limits.second < rep.at(route).size());
 
     auto movemove = MoveData(route, limits);
     // std::cout << "returning Move2Opt" <<std::endl;
@@ -223,11 +269,7 @@ public:
         instance));
   }
 
-  virtual void print() const
-  {
-  }
-
-  string id() const { return "";}
+  string id() const { return ""; }
 };
 
 }
