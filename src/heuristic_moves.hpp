@@ -11,17 +11,28 @@ namespace loggibud {
 const MoveData&
 opt02(const MoveData& moveData, ESolutionVRP& candidate)
 {
-  int n = candidate.first.size();
-  std::vector<int>& route = candidate.first[moveData.route1];
+  assert(moveData.route1 < candidate.first.size());
+
+  std::vector<int>& route = candidate.first.at(moveData.route1);
+  int n = route.size();
+
+  // std::cout << "MoveData: (" << moveData.route1 << ", {" << moveData.limitsL.first << ", " << moveData.limitsL.second << "});"
+  //           << "\t size = " << n << std::endl;
 
   auto optLimits = moveData.limitsL;
 
+  assert(optLimits.first <= optLimits.second);
+  assert(optLimits.first < n);
+  assert(optLimits.second < n);
+
+  // std::reverse(route.begin() + optLimits.first, route.begin() + optLimits.second);
+
   n = abs(optLimits.second - optLimits.first) / 2;
 
-  for (auto i = 0; i <= n; i++) {
-    int j = route[optLimits.first + i];
-    route[optLimits.first + i] = route[optLimits.second - i];
-    route[optLimits.second - i] = j;
+  for (auto i = 0; i < n; i++) {
+    int j = route.at(optLimits.first + i);
+    route.at(optLimits.first + i) = route.at(optLimits.second - i);
+    route.at(optLimits.second - i) = j;
   }
 
   return moveData;
