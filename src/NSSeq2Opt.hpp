@@ -238,12 +238,12 @@ public:
     const int n = rep.size();
 
     // random route to apply 2opt
-    int route = rg.rand(n);
+    int route = rand() % n;
 
     // std::cout << "route = " << route << std::endl;
     //           << "limits = " << rep[route].size() << std::endl;
 
-    auto limits = twoRandNoDepotwithrandgen(rep.at(route).size(), rg);
+    auto limits = twoRandNoDepot(rep.at(route).size());
 
     // std::cout << "xMoveData: (" << route << ", {" << limits.first << ", " << limits.second << "});"
     //           << "\t size = " << rep.at(route).size() << "\t" << std::flush;
