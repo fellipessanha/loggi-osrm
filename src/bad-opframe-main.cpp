@@ -72,130 +72,136 @@ public:
 int
 main(int argc, const char** argv)
 {
+  std::stringstream outBuffer;
+  outBuffer << "instance, rand_score, hillClimb_score, RDM_score, SA_score\n";
   for (int instance_index = 0; instance_index < deliveries_path.size(); instance_index++) {
+    for (int repetitions = 20; repetitions < 30; repetitions++) {
+      outBuffer << instance_index << "_" << repetitions << ", ";
 
-    int time;
-    if (argc > 1)
-      time = std::atoi(argv[1]);
-    else
-      time = 60;
+      bool check_verbose = false;
+      optframe::CheckCommand<ESolutionVRP> checkModule(check_verbose);
 
-    bool check_verbose = false;
-    optframe::CheckCommand<ESolutionVRP> checkModule(check_verbose);
+      // loading instance data
+      loggibud::Instance instance(
+        instances_path[instance_index],
+        deliveries_path[instance_index],
+        "clusterings/kmeans-clusteringLabels.json");
+      ///////////////////////////
+      // getting relevant info //
+      ///////////////////////////
+      //
+      const auto& deliveriesList = instance.getAllDeliveries();
+      // const auto clustersMap = loggibud::makeMatrixDistances(instance);
+      const int cap = instance.getCap();
+      const int min_cars = deliveriesList.size() / cap;
 
-    // loading instance data
-    loggibud::Instance instance(
-      instances_path[instance_index],
-      deliveries_path[instance_index],
-      "clusterings/kmeans-clusteringLabels.json");
-    ///////////////////////////
-    // getting relevant info //
-    ///////////////////////////
-    //
-    const auto& deliveriesList = instance.getAllDeliveries();
-    // const auto clustersMap = loggibud::makeMatrixDistances(instance);
-    const int cap = instance.getCap();
-    const int min_cars = deliveriesList.size() / cap;
+      //////////////////////////////
+      // setting up the evaluator //
+      //////////////////////////////
+      //
+      std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)>
+        evaluation_function = [&](std::vector<std::vector<int>> sol) -> optframe::Evaluation<double> {
+        double score = loggibud::evaluateInstanceClusters(sol, instance);
+        return optframe::Evaluation<double>{ score };
+      };
+      //
+      optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> opt_evaluator{ evaluation_function };
+      //
+      MyEvaluator myEval(instance, opt_evaluator);
 
-    //////////////////////////////
-    // setting up the evaluator //
-    //////////////////////////////
-    //
-    std::function<optframe::Evaluation<double>(std::vector<std::vector<int>>)>
-      evaluation_function = [&](std::vector<std::vector<int>> sol) -> optframe::Evaluation<double> {
-      double score = loggibud::evaluateInstanceClusters(sol, instance);
-      return optframe::Evaluation<double>{ score };
-    };
-    //
-    optframe::FEvaluator<ESolutionVRP, optframe::MinOrMax::MINIMIZE> opt_evaluator{ evaluation_function };
-    //
-    MyEvaluator myEval(instance, opt_evaluator);
+      ///////////////////////////////////////////////
+      // setting up the initial solution generator //
+      ///////////////////////////////////////////////
+      // this depends on the Evaluator!
+      //
+      std::function<std::vector<std::vector<int>>()>
+        badGeneration = [&]() -> std::vector<std::vector<int>> {
+        return loggibud::generatefromClusters(instance, instance.getCap());
+      };
+      //
+      optframe::FConstructive<std::vector<std::vector<int>>> badGen{
+        badGeneration
+      };
+      //
+      optframe::BasicInitialSearch<ESolutionVRP> badInit(badGen, opt_evaluator);
+      sref<optframe::InitialSearch<ESolutionVRP>> initBadref{ badInit };
 
-    ///////////////////////////////////////////////
-    // setting up the initial solution generator //
-    ///////////////////////////////////////////////
-    // this depends on the Evaluator!
-    //
-    std::function<std::vector<std::vector<int>>()>
-      badGeneration = [&]() -> std::vector<std::vector<int>> {
-      return loggibud::generatefromClusters(instance, instance.getCap());
-    };
-    //
-    optframe::FConstructive<std::vector<std::vector<int>>> badGen{
-      badGeneration
-    };
-    //
-    optframe::BasicInitialSearch<ESolutionVRP> badInit(badGen, opt_evaluator);
-    sref<optframe::InitialSearch<ESolutionVRP>> initBadref{ badInit };
+      sref<optframe::RandGen> rg{ new optframe::RandGen };
+      //
+      sref<optframe::NS<ESolutionVRP>> nsSeq2Opt{ new loggibud::NSSeq2Opt(instance, rg) };
 
-    sref<optframe::RandGen> rg{ new optframe::RandGen };
-    //
-    sref<optframe::NS<ESolutionVRP>> nsSeq2Opt{ new loggibud::NSSeq2Opt(instance, rg) };
+      vsref<optframe::NS<ESolutionVRP>> neighbors;
+      neighbors.push_back(nsSeq2Opt);
 
-    vsref<optframe::NS<ESolutionVRP>> neighbors;
-    neighbors.push_back(nsSeq2Opt);
+      // checkModule.add(badInit);
+      // checkModule.add(myEval);
+      // checkModule.add(nsSeq2Opt);
 
-    // checkModule.add(badInit);
-    // checkModule.add(myEval);
-    // checkModule.add(nsSeq2Opt);
+      // auto allData = checkModule.run(5, 8);
+      // // general_param, qtas voltas vc quer dar na vizinhança
+      // exit(1);
 
-    // auto allData = checkModule.run(5, 8);
-    // // general_param, qtas voltas vc quer dar na vizinhança
-    // exit(1);
+      /////////////////////////////////////////
+      // Setting up the heuristics //
+      /////////////////////////////////////////
+      //
+      optframe::StopCriteria<optframe::Evaluation<double>> sc{ 0 };
 
-    /////////////////////////////////////////
-    // Setting up the heuristics //
-    /////////////////////////////////////////
-    //
-    optframe::StopCriteria<optframe::Evaluation<double>> sc{ 0 };
+      // Multi improvement for support:
+      sref<optframe::LocalSearch<ESolutionVRP>> mirs_tsp{ new optframe::MultiRandomSelection<ESolutionVRP>(myEval, nsSeq2Opt, deliveriesList.size(), { 0 }) };
 
-    // Multi improvement for support:
-    sref<optframe::LocalSearch<ESolutionVRP>> mirs_tsp{ new optframe::MultiRandomSelection<ESolutionVRP>(myEval, nsSeq2Opt, deliveriesList.size(), { 0 }) };
+      // Hill Climb
+      sref<optframe::LocalSearch<ESolutionVRP>> hc_mirs_tsp{ new optframe::HillClimbing<ESolutionVRP>{ myEval, mirs_tsp } };
 
-    // Random Descent
+      ESolutionVRP init_hill = *initBadref->initialSearch(sc.start()).first;
+      std::cout << "initial SECOND: " << init_hill.second << std::endl;
+      outBuffer << init_hill.second << ", ";
 
-    sref<optframe::LocalSearch<ESolutionVRP>>
-      rdm_tsp{ new optframe::RandomDescentMethod<ESolutionVRP>{ myEval, nsSeq2Opt, deliveriesList.size() } };
+      auto status_hill = hc_mirs_tsp->searchFrom(init_hill, sc.start());
 
-    ESolutionVRP init_descent = *initBadref->initialSearch(sc.start()).first;
+      // std::cout << "HillClimb FIRST: " << init_hill.first << std::endl;
+      std::cout << "HillClimb SECOND: " << init_hill.second << std::endl;
+      outBuffer << init_hill.second << ", ";
 
-    auto status_descent = rdm_tsp->searchFrom(init_descent, sc.start());
+      // Random Descent
 
-    // std::cout << "st: " << st3 << " time:" << sc.getTime() << std::endl;
-    // std::cout << "PRINT FIRST: " << init_descent.first << std::endl;
-    std::cout << "random descent SECOND: " << init_descent.second << std::endl;
+      sref<optframe::LocalSearch<ESolutionVRP>>
+        rdm_tsp{ new optframe::RandomDescentMethod<ESolutionVRP>{ myEval, nsSeq2Opt, deliveriesList.size() } };
 
-    // Hill Climb
-    sref<optframe::LocalSearch<ESolutionVRP>> hc_mirs_tsp{ new optframe::HillClimbing<ESolutionVRP>{ myEval, mirs_tsp } };
+      ESolutionVRP init_descent = *initBadref->initialSearch(sc.start()).first;
 
-    ESolutionVRP init_hill = *initBadref->initialSearch(sc.start()).first;
-    std::cout << "initial SECOND: " << init_hill.second << std::endl;
+      auto status_descent = rdm_tsp->searchFrom(init_descent, sc.start());
 
-    auto status_hill = hc_mirs_tsp->searchFrom(init_hill, sc.start());
+      // std::cout << "st: " << st3 << " time:" << sc.getTime() << std::endl;
+      // std::cout << "PRINT FIRST: " << init_descent.first << std::endl;
+      std::cout << "random descent SECOND: " << init_descent.second << std::endl;
+      outBuffer << init_descent.second;
 
-    // std::cout << "HillClimb FIRST: " << init_hill.first << std::endl;
-    std::cout << "HillClimb SECOND: " << init_hill.second << std::endl;
+      // SA
+      double tempInit = optframe::BasicSimulatedAnnealing<ESolutionVRP>::estimateInitialTemperature(
+        myEval, badInit, neighbors, 1.1, 0.7, 500, 1, rg);
 
-    // SA
-    double tempInit = optframe::BasicSimulatedAnnealing<ESolutionVRP>::estimateInitialTemperature(
-      myEval, badInit, neighbors, 1.1, 0.7, 500, 1, rg);
+      optframe::BasicSimulatedAnnealing<ESolutionVRP>
+        sa(
+          myEval,    // sref<GeneralEvaluator<XES, XEv>> _evaluator,
+          badInit,   // sref<InitialSearch<XES, XEv>> _constructive,
+          nsSeq2Opt, // sref<NS<XES, XEv, XSH>> _neighbors,
+          0.98,
+          100,
+          tempInit, // double _alpha, int _SAmax, double _Ti,
+          rg        // sref<RandGen> _rg = new RandGen
+        );
 
-    optframe::BasicSimulatedAnnealing<ESolutionVRP>
-      sa(
-        myEval,    // sref<GeneralEvaluator<XES, XEv>> _evaluator,
-        badInit,   // sref<InitialSearch<XES, XEv>> _constructive,
-        nsSeq2Opt, // sref<NS<XES, XEv, XSH>> _neighbors,
-        0.98,
-        100,
-        tempInit, // double _alpha, int _SAmax, double _Ti,
-        rg        // sref<RandGen> _rg = new RandGen
-      );
+      sa.setSilentR();
 
-    sa.setSilentR();
+      auto status = sa.search(60);
+      auto sa_best = *status.best;
+      sa_best.second.print();
 
-    auto status = sa.search(time);
-    auto sa_best = *status.best;
-    sa_best.second.print();
+      outBuffer << sa_best.second.evaluation() << '\n';
+    }
   }
+  std::ofstream logswriter("logs/real_late_log.csv");
+  logswriter << outBuffer.str();
   return 0;
 }
