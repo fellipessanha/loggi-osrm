@@ -72,6 +72,9 @@ public:
 int
 main(int argc, const char** argv)
 {
+  std::ofstream testLog("logs/testing.txt");
+  testLog << "does this even work?";
+
   std::stringstream outBuffer;
   outBuffer << "instance, rand_score, hillClimb_score, RDM_score, SA_score\n";
   for (int instance_index = 0; instance_index < deliveries_path.size(); instance_index++) {
@@ -199,7 +202,9 @@ main(int argc, const char** argv)
       sa_best.second.print();
 
       outBuffer << sa_best.second.evaluation() << '\n';
+      break;
     }
+    break;
   }
   std::ofstream logswriter("logs/real_late_log.csv");
   logswriter << outBuffer.str();
