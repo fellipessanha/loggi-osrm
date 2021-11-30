@@ -10,7 +10,7 @@ osrm-server:
 	docker run --rm -ti -p 5000:5000 -v "${PWD}/sudeste-osrm:/data" osrm/osrm-backend osrm-routed --algorithm ch /data/sudeste-latest.osrm --max-table-size 10000
 
 bad:
-	g++-10 -fsanitize=address -pedantic -g -O3 -std=c++17 -I../optframe/src/ -fconcepts src/bad-opframe-main.cpp -o main-loggi -lcurl -lcurlpp 
+	g++ -fsanitize=address -Wfatal-errors -pedantic -g -O3 -std=c++17 -I../optframe/src/ -fconcepts src/bad-opframe-main.cpp -o main-loggi -lcurl -lcurlpp 
 # evalloggi:
 # 	g++ src/loggi-evaluator.hpp -lcurl -lcurlpp -o evalloggi
 

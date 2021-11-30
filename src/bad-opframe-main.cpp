@@ -79,15 +79,15 @@ main(int argc, const char** argv)
   outBuffer << "instance, rand_score, hillClimb_score, RDM_score, SA_score\n";
   // for (int instance_index = 0; instance_index < deliveries_path.size(); instance_index++) {
   for (int repetitions = 20; repetitions < 30; repetitions++) {
-    outBuffer << instance_index << "_" << repetitions << ", ";
+    outBuffer << 0 << "_" << repetitions << ", ";
 
     bool check_verbose = false;
     optframe::CheckCommand<ESolutionVRP> checkModule(check_verbose);
 
     // loading instance data
     loggibud::Instance instance(
-      instances_path[instance_index],
-      deliveries_path[instance_index],
+      instances_path[0],
+      deliveries_path[0],
       "clusterings/kmeans-clusteringLabels.json");
     ///////////////////////////
     // getting relevant info //
