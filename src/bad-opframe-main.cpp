@@ -72,8 +72,8 @@ public:
 int
 main(int argc, const char** argv)
 {
-  // std::ofstream testLog("logs/testing.txt");
-  // testLog << "does this even work?";
+  std::ofstream testLog("logs/testing.txt");
+  testLog << "does this even work?";
 
   std::stringstream outBuffer;
   outBuffer << "instance, rand_score, hillClimb_score, RDM_score, SA_score\n";
@@ -119,7 +119,7 @@ main(int argc, const char** argv)
       //
       std::function<std::vector<std::vector<int>>()>
         badGeneration = [&]() -> std::vector<std::vector<int>> {
-        return loggibud::firstBadSolution(deliveriesList, instance.getCap());
+        return loggibud::generatefromClusters(instance, instance.getCap());
       };
       //
       optframe::FConstructive<std::vector<std::vector<int>>> badGen{
@@ -159,7 +159,6 @@ main(int argc, const char** argv)
       ESolutionVRP init_hill = *initBadref->initialSearch(sc.start()).first;
       std::cout << "initial SECOND: " << init_hill.second << std::endl;
       outBuffer << init_hill.second << ", ";
-      exit(1);
 
       auto status_hill = hc_mirs_tsp->searchFrom(init_hill, sc.start());
 
